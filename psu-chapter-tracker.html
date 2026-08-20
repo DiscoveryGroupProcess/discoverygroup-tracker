@@ -1,0 +1,2333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Discovery Group Tracker</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#f5f6fa;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#2d3550;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* ENTRY SCREEN */
+#entry-screen{position:fixed;inset:0;background:linear-gradient(135deg,#1a1f36 0%,#2d3550 100%);display:flex;align-items:center;justify-content:center;z-index:1000;}
+.entry-card{background:#fff;border-radius:18px;padding:44px 48px;width:580px;max-width:95vw;box-shadow:0 24px 80px rgba(0,0,0,.35);}
+.entry-logo{font-size:26px;font-weight:800;color:#1a1f36;letter-spacing:-.02em;margin-bottom:4px;}
+.entry-logo span{color:#7986cb;}
+.entry-sub{font-size:13px;color:#9099b8;margin-bottom:36px;}
+.entry-divider{display:flex;align-items:center;gap:12px;margin:28px 0;color:#c8cfe8;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
+.entry-divider::before,.entry-divider::after{content:'';flex:1;height:1px;background:#eef0fb;}
+.entry-section-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9099b8;margin-bottom:10px;}
+.entry-row{display:flex;gap:10px;align-items:flex-start;}
+.entry-select,.entry-input{flex:1;background:#f5f6fa;border:1.5px solid #dde1ee;border-radius:8px;padding:9px 13px;color:#1a1f36;font-size:13px;outline:none;font-family:inherit;}
+.entry-select:focus,.entry-input:focus{border-color:#7986cb;background:#fff;}
+.entry-select:disabled{opacity:.5;cursor:not-allowed;}
+.entry-btn{background:#7986cb;border:none;border-radius:8px;padding:9px 20px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.entry-btn:hover{background:#5c6bc0;}
+.entry-btn:disabled{opacity:.5;cursor:not-allowed;}
+.entry-error{font-size:12px;color:#ef5350;margin-top:8px;display:none;}
+
+/* TOPBAR */
+#topbar{background:#fff;border-bottom:1px solid #dde1ee;padding:10px 20px;display:flex;align-items:center;gap:10px;flex-shrink:0;display:none;}
+#topbar h1{font-size:15px;font-weight:700;color:#1a1f36;letter-spacing:.03em;}
+#topbar span.count{font-size:11px;color:#9099b8;}
+#frontier-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;background:rgba(121,134,203,.12);color:#7986cb;letter-spacing:.05em;}
+#search{background:#f0f2f9;border:1px solid #dde1ee;border-radius:20px;padding:5px 14px;color:#2d3550;font-size:12px;width:180px;outline:none;}
+#search:focus{border-color:#7986cb;}
+#search::placeholder{color:#b0b8d4;}
+.topbar-btn{background:#f0f2f9;border:1px solid #dde1ee;border-radius:6px;padding:5px 13px;color:#7986cb;font-size:11px;cursor:pointer;font-weight:600;white-space:nowrap;}
+.topbar-btn:hover{background:#eef0fb;}
+.topbar-btn:disabled{opacity:.5;cursor:default;}
+#home-btn{background:none;border:none;color:#9099b8;font-size:11px;cursor:pointer;padding:5px 8px;border-radius:6px;}
+#home-btn:hover{background:#f5f6fa;color:#1a1f36;}
+#board-btn{background:#1a1f36;border:none;border-radius:6px;padding:5px 13px;color:#fff;font-size:11px;cursor:pointer;font-weight:600;}
+
+/* MAIN */
+#main{display:flex;flex:1;overflow:hidden;display:none;}
+
+/* LEFT SIDEBAR */
+#sidebar{width:270px;flex-shrink:0;background:#fff;border-right:1px solid #dde1ee;overflow-y:auto;padding:8px 0;}
+#sidebar::-webkit-scrollbar{width:4px;}
+#sidebar::-webkit-scrollbar-thumb{background:#dde1ee;border-radius:2px;}
+.cat-header{display:flex;align-items:center;gap:8px;padding:9px 14px;cursor:pointer;user-select:none;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7986cb;}
+.cat-header:hover{background:rgba(121,134,203,.06);}
+.cat-header .arrow{font-size:9px;transition:transform .2s;color:#b0b8d4;}
+.cat-header.open .arrow{transform:rotate(90deg);}
+.cat-header .badge{background:rgba(121,134,203,.12);color:#7986cb;font-size:9px;padding:1px 6px;border-radius:8px;margin-left:4px;}
+.cat-body{display:none;}
+.cat-body.open{display:block;}
+.chapter-row{padding:7px 14px 7px 26px;cursor:pointer;font-size:12px;color:#6b75a0;display:flex;align-items:center;gap:6px;position:relative;}
+.chapter-row:hover{background:#f5f6fa;color:#1a1f36;}
+.chapter-row.active{background:#eef0fb;color:#1a1f36;}
+.chapter-row.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#7986cb;border-radius:0 2px 2px 0;}
+.chapter-row .dot{width:6px;height:6px;border-radius:50%;background:#dde1ee;flex-shrink:0;}
+.chapter-row.has-notes .dot{background:#7986cb;}
+.chapter-row.has-pod .dot{background:#ef5350;}
+.chapter-row.has-growth .dot{background:#26c6da;}
+.chapter-row .row-name{flex:1;}
+.chapter-row .del-row{display:none;background:none;border:none;color:#b0b8d4;cursor:pointer;font-size:15px;line-height:1;padding:0 2px;flex-shrink:0;}
+.chapter-row:hover .del-row{display:block;}
+.chapter-row .del-row:hover{color:#ef5350;}
+.row-badges{display:flex;gap:3px;flex-shrink:0;}
+.rbadge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;letter-spacing:.04em;}
+.rbadge-dg{background:rgba(121,134,203,.15);color:#7986cb;}
+.rbadge-wam{background:rgba(0,137,123,.15);color:#00897b;}
+.status-toggle{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+.tog{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;border:2px solid #dde1ee;color:#9099b8;transition:all .15s;}
+.tog.on-dg{border-color:#7986cb;background:rgba(121,134,203,.1);color:#7986cb;}
+.tog.on-wam{border-color:#00897b;background:rgba(0,137,123,.1);color:#00897b;}
+.tog .tog-dot{width:8px;height:8px;border-radius:50%;background:#dde1ee;}
+.tog.on-dg .tog-dot{background:#7986cb;}
+.tog.on-wam .tog-dot{background:#00897b;}
+.sticker-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+.sticker{cursor:pointer;user-select:none;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;border:2px solid #e0e0e0;color:#aaa;background:#fafafa;transition:all .15s;letter-spacing:.02em;white-space:nowrap;}
+.sticker.on{color:#fff;border-color:transparent;}
+.cat-ifc .cat-header{color:#7986cb;}
+.cat-ifc .chapter-row.active::before{background:#7986cb;}
+.cat-pan .cat-header{color:#ec407a;}
+.cat-pan .chapter-row{color:#b06080;}
+.cat-pan .chapter-row:hover{color:#1a1f36;}
+.cat-pan .chapter-row.active{color:#1a1f36;background:#fdf0f5;}
+.cat-pan .chapter-row.active::before{background:#ec407a;}
+.cat-pan .cat-header .badge{background:rgba(236,64,122,.12);color:#ec407a;}
+.cat-oth .cat-header{color:#00897b;}
+.cat-oth .chapter-row.active::before{background:#00897b;}
+.cat-oth .cat-header .badge{background:rgba(0,137,123,.12);color:#00897b;}
+.add-chapter{padding:6px 14px 6px 26px;font-size:11px;color:#b0b8d4;cursor:pointer;display:flex;align-items:center;gap:5px;}
+.add-chapter:hover{color:#7986cb;}
+.add-chapter-form{padding:6px 10px 6px 22px;display:flex;gap:4px;}
+.add-chapter-form input{flex:1;background:#f5f6fa;border:1px solid #7986cb;border-radius:4px;padding:4px 8px;color:#1a1f36;font-size:11px;outline:none;}
+.add-chapter-form button{background:#7986cb;border:none;border-radius:4px;padding:4px 8px;color:#fff;font-size:11px;cursor:pointer;}
+.add-chapter-form .cancel{background:transparent;color:#b0b8d4;}
+
+/* RIGHT PANEL */
+#panel{flex:1;overflow-y:auto;padding:28px 36px;background:#f5f6fa;}
+#panel::-webkit-scrollbar{width:5px;}
+#panel::-webkit-scrollbar-thumb{background:#dde1ee;border-radius:2px;}
+#empty{overflow-y:auto;padding:32px 40px;}
+.dash-greeting{font-size:22px;font-weight:800;color:#1a1f36;letter-spacing:-.02em;margin-bottom:4px;}
+.dash-sub{font-size:13px;color:#9099b8;margin-bottom:28px;}
+.dash-stats{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:28px;}
+.dash-stat{background:#fff;border:1px solid #dde1ee;border-radius:12px;padding:18px 22px;flex:1;min-width:120px;}
+.dash-stat-num{font-size:28px;font-weight:800;color:#1a1f36;line-height:1;}
+.dash-stat-label{font-size:11px;color:#9099b8;margin-top:4px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+.dash-stat.accent-dg .dash-stat-num{color:#7986cb;}
+.dash-stat.accent-wam .dash-stat-num{color:#00897b;}
+.dash-stat.accent-both .dash-stat-num{color:#5c6bc0;}
+.dash-stat.accent-pod .dash-stat-num{color:#ef5350;}
+.dash-stat.accent-growth .dash-stat-num{color:#00897b;}
+.dash-section-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9099b8;margin-bottom:12px;}
+.dash-coaches{display:flex;flex-direction:column;gap:8px;margin-bottom:28px;}
+.dash-coach-row{background:#fff;border:1px solid #dde1ee;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.dash-coach-name{font-size:13px;font-weight:700;color:#1a1f36;flex:1;}
+.dash-coach-chips{display:flex;gap:5px;flex-wrap:wrap;}
+.dash-coach-chip{font-size:10px;font-weight:600;padding:2px 8px;border-radius:8px;background:#f0f2f9;color:#5c6bc0;border:1px solid #e0e4f5;cursor:pointer;}
+.dash-coach-chip:hover{background:#e8eaf5;}
+.dash-empty-note{color:#c8cfe8;font-size:12px;font-style:italic;padding:12px 0;}
+.dash-summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:28px;}
+.dash-sum-card{background:#fff;border:1px solid #dde1ee;border-radius:10px;padding:12px 14px;cursor:pointer;transition:box-shadow .15s,transform .1s;}
+.dash-sum-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.1);transform:translateY(-1px);}
+.dash-sum-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.dash-sum-name{font-size:13px;font-weight:800;color:#1a1f36;flex:1;line-height:1.3;}
+.dash-sum-badges{display:flex;gap:3px;flex-shrink:0;}
+.dash-sum-coach{font-size:11px;color:#9099b8;margin-bottom:6px;}
+.dash-sum-coach strong{color:#5c6bc0;}
+.dash-sum-notes{font-size:11px;color:#4a5380;line-height:1.5;border-left:2px solid #e8eaf5;padding-left:8px;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.dash-sum-students{display:flex;gap:5px;flex-wrap:wrap;}
+.dash-sum-stu{font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;}
+.dash-sum-divider{height:1px;background:#f0f2f9;margin:6px 0;}
+.panel-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid #dde1ee;}
+.panel-title{flex:1;}
+.panel-title h2{font-size:20px;font-weight:700;color:#1a1f36;}
+.panel-title .meta{font-size:11px;color:#9099b8;margin-top:3px;}
+.panel-cat-badge{font-size:10px;padding:3px 10px;border-radius:12px;font-weight:700;letter-spacing:.05em;}
+.section{margin-bottom:28px;}
+.section-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9099b8;margin-bottom:10px;}
+.leaders-list{display:flex;flex-direction:column;gap:6px;}
+.leader-row{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #dde1ee;border-radius:6px;padding:7px 10px;}
+.leader-name{flex:1;background:transparent;border:none;outline:none;color:#1a1f36;font-size:12px;}
+.leader-role{background:#f5f6fa;border:1px solid #dde1ee;border-radius:4px;padding:3px 8px;color:#7986cb;font-size:11px;outline:none;cursor:pointer;}
+.leader-year{background:#f5f6fa;border:1px solid #dde1ee;border-radius:4px;padding:3px 8px;color:#9099b8;font-size:11px;outline:none;cursor:pointer;}
+.leader-del{background:none;border:none;color:#b0b8d4;cursor:pointer;font-size:14px;padding:0 2px;}
+.leader-del:hover{color:#ef5350;}
+.add-btn{background:#fff;border:1px dashed #dde1ee;border-radius:6px;padding:7px 12px;color:#b0b8d4;font-size:11px;cursor:pointer;width:100%;text-align:left;margin-top:4px;}
+.add-btn:hover{border-color:#7986cb;color:#7986cb;}
+#notes-area{width:100%;background:#fff;border:1px solid #dde1ee;border-radius:8px;padding:12px;color:#1a1f36;font-size:13px;line-height:1.7;resize:vertical;min-height:140px;outline:none;font-family:inherit;}
+#notes-area:focus{border-color:#7986cb;}
+#notes-area::placeholder{color:#c8cfe8;}
+.student-card{background:#fff;border:1px solid #dde1ee;border-radius:8px;padding:10px 12px;margin-bottom:8px;}
+.student-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.student-name-inp{flex:1;background:transparent;border:none;outline:none;color:#1a1f36;font-size:13px;font-weight:600;}
+.student-status{border:none;border-radius:12px;padding:3px 10px;font-size:10px;font-weight:700;letter-spacing:.05em;cursor:pointer;outline:none;}
+.status-pod{background:rgba(239,83,80,.12);color:#ef5350;}
+.status-growth{background:rgba(0,137,123,.12);color:#00897b;}
+.status-watching{background:rgba(121,134,203,.12);color:#7986cb;}
+.student-note{width:100%;background:transparent;border:none;outline:none;color:#9099b8;font-size:11px;resize:none;line-height:1.5;font-family:inherit;}
+.student-note::placeholder{color:#c8cfe8;}
+.student-del-btn{background:none;border:none;color:#c8cfe8;cursor:pointer;font-size:13px;}
+.student-del-btn:hover{color:#ef5350;}
+.add-student-btn{background:#fff;border:1px dashed #dde1ee;border-radius:8px;padding:9px 12px;color:#b0b8d4;font-size:11px;cursor:pointer;width:100%;text-align:left;}
+.add-student-btn:hover{border-color:#7986cb;color:#7986cb;}
+.last-saved{font-size:10px;color:#b0b8d4;text-align:right;margin-top:6px;}
+.milestone-card{background:#fff;border:1px solid #e0e7ff;border-radius:8px;padding:7px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.ms-name{flex:1;min-width:100px;background:transparent;border:none;outline:none;color:#1a1f36;font-size:12px;font-weight:600;font-family:inherit;}
+.ms-name::placeholder{color:#c8cfe8;font-weight:400;}
+.ms-sel{background:#f5f6fa;border:1px solid #dde1ee;border-radius:4px;padding:3px 7px;color:#5c6bc0;font-size:11px;outline:none;cursor:pointer;}
+.ms-pill{border-radius:12px;padding:3px 10px;font-size:10px;font-weight:700;letter-spacing:.04em;cursor:pointer;border:1px solid #dde1ee;background:#f5f6fa;color:#b0b8d4;white-space:nowrap;flex-shrink:0;transition:background .15s,color .15s,border-color .15s;}
+.ms-pill.on{background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7;}
+.ms-del{background:none;border:none;color:#c8cfe8;cursor:pointer;font-size:14px;padding:0 2px;flex-shrink:0;}
+.ms-del:hover{color:#ef5350;}
+.ms-col-hdr{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#b0b8d4;text-align:center;}
+.add-milestone-btn{background:#fff;border:1px dashed #c5cae9;border-radius:6px;padding:7px 12px;color:#9099b8;font-size:11px;cursor:pointer;width:100%;text-align:left;margin-top:4px;}
+.add-milestone-btn:hover{border-color:#5c6bc0;color:#5c6bc0;}
+
+/* BOARD VIEW */
+#board-view{display:none;position:fixed;inset:0;background:#f7f5f0;overflow-y:auto;z-index:100;flex-direction:column;}
+#board-view.open{display:flex;}
+#board-topbar{background:#fff;border-bottom:1px solid #e8e4dc;padding:10px 24px;display:flex;align-items:center;gap:14px;flex-shrink:0;position:sticky;top:0;z-index:10;}
+#board-topbar h2{font-size:15px;font-weight:700;color:#1a1f36;}
+#board-topbar span{font-size:11px;color:#9099b8;}
+#close-board{margin-left:auto;background:#f0f2f9;border:1px solid #dde1ee;border-radius:6px;padding:5px 14px;color:#7986cb;font-size:11px;cursor:pointer;font-weight:600;}
+#board-cols{display:flex;gap:20px;padding:24px;align-items:flex-start;min-height:100%;}
+.board-col{flex:1;min-width:280px;}
+.board-col-hdr{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border-radius:6px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.board-col-hdr .col-count{font-size:10px;padding:1px 7px;border-radius:8px;font-weight:700;}
+.col-both .board-col-hdr{color:#00897b;background:rgba(0,137,123,.08);}
+.col-both .board-col-hdr .col-count{background:rgba(0,137,123,.15);color:#00897b;}
+.col-dg .board-col-hdr{color:#7986cb;background:rgba(121,134,203,.08);}
+.col-dg .board-col-hdr .col-count{background:rgba(121,134,203,.15);color:#7986cb;}
+.col-none .board-col-hdr{color:#9099b8;background:rgba(144,153,184,.08);}
+.col-none .board-col-hdr .col-count{background:rgba(144,153,184,.15);color:#9099b8;}
+.board-card{background:#fff;border-radius:12px;padding:16px 18px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.07);border:1px solid #eaecf4;cursor:pointer;transition:box-shadow .15s,transform .1s;}
+.board-card:hover{box-shadow:0 5px 18px rgba(0,0,0,.12);transform:translateY(-1px);}
+.bc-top{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;}
+.bc-name{font-size:14px;font-weight:800;color:#1a1f36;flex:1;letter-spacing:-.01em;line-height:1.3;}
+.bc-badges{display:flex;gap:4px;margin-top:2px;}
+.bc-coach{font-size:11px;color:#9099b8;margin-bottom:10px;font-weight:500;}
+.bc-coach strong{color:#5c6bc0;font-weight:700;}
+.bc-divider{height:1px;background:#f0f2f9;margin:10px 0;}
+.bc-notes{font-size:12px;color:#4a5380;line-height:1.6;margin-bottom:10px;border-left:3px solid #e8eaf5;padding-left:10px;}
+.bc-students{display:flex;flex-direction:column;gap:6px;}
+.bc-student{display:flex;flex-direction:column;gap:2px;padding:6px 8px;border-radius:7px;background:#fafbff;}
+.bc-student-row{display:flex;align-items:center;gap:6px;}
+.bc-student .st-badge{font-size:9px;padding:2px 8px;border-radius:8px;font-weight:700;flex-shrink:0;}
+.bc-student .st-name{font-size:12px;font-weight:600;color:#1a1f36;}
+.bc-student .st-pod-note{font-size:11px;color:#ef5350;padding-left:4px;font-style:italic;}
+.bc-empty{color:#c8cfe8;font-size:11px;font-style:italic;text-align:center;padding:20px 0;}
+/* POD note in panel */
+.pod-note-row{margin-top:6px;display:none;}
+.pod-note-row.visible{display:block;}
+.pod-note-inp{width:100%;background:#fff5f5;border:1px solid #ffc8c8;border-radius:6px;padding:6px 10px;color:#c62828;font-size:11px;outline:none;font-family:inherit;resize:none;line-height:1.5;}
+.pod-note-inp::placeholder{color:#e99;}
+/* Coach field */
+.coach-row{display:flex;align-items:center;gap:10px;background:#f8f9ff;border:1px solid #e8eaf5;border-radius:8px;padding:8px 12px;margin-bottom:18px;}
+.coach-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9099b8;white-space:nowrap;}
+.coach-inp{flex:1;background:transparent;border:none;outline:none;color:#1a1f36;font-size:13px;font-weight:600;font-family:inherit;}
+.coach-inp::placeholder{color:#c8cfe8;font-weight:400;}
+
+/* MASTER BOARD */
+.frontier-section{margin-bottom:36px;}
+.frontier-section-hdr{font-size:13px;font-weight:800;color:#1a1f36;letter-spacing:-.01em;padding:0 0 14px;border-bottom:2px solid #e8e4dc;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.frontier-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:10px;background:rgba(121,134,203,.12);color:#7986cb;letter-spacing:.05em;}
+.frontier-cols{display:flex;gap:16px;}
+.frontier-cols .board-col{flex:1;min-width:200px;}
+
+/* NOTES VIEW */
+#notes-view{display:none;position:fixed;inset:0;background:#e8e8e8;z-index:150;flex-direction:column;}
+#notes-view.open{display:flex;}
+#notes-topbar{background:#f5f5f5;border-bottom:1px solid #d4d4d4;padding:8px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+#notes-topbar .notes-frontier{font-size:12px;font-weight:600;color:#555;flex:1;}
+#notes-topbar .notes-sub{font-size:11px;color:#999;}
+#notes-main{flex:1;display:flex;overflow:hidden;}
+#notes-sidebar{width:200px;background:#f0f0f0;border-right:1px solid #d4d4d4;display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
+#notes-sidebar .ns-hdr{padding:12px 14px 8px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#999;}
+.notes-page-row{padding:8px 14px;font-size:12px;color:#444;cursor:pointer;border-left:3px solid transparent;line-height:1.4;word-break:break-word;}
+.notes-page-row:hover{background:#e4e4e4;}
+.notes-page-row.active{background:#fff;border-left-color:#5c6bc0;color:#1a1f36;font-weight:600;}
+.notes-page-row .npr-title{display:block;}
+#notes-new-btn{margin:10px 14px;padding:7px 10px;background:#5c6bc0;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;text-align:center;}
+#notes-new-btn:hover{background:#3949ab;}
+#notes-content{flex:1;overflow-y:auto;padding:40px 24px;display:flex;justify-content:center;}
+#notes-page{background:#fff;width:100%;max-width:720px;min-height:calc(100vh - 100px);box-shadow:0 2px 16px rgba(0,0,0,.15);padding:60px 72px;box-sizing:border-box;display:flex;flex-direction:column;}
+#notes-page-title{border:none;outline:none;font-size:20px;font-weight:700;color:#1a1f36;font-family:'Georgia',serif;width:100%;margin-bottom:24px;padding-bottom:12px;border-bottom:1px solid #eee;background:transparent;}
+#notes-page-title::placeholder{color:#ccc;font-weight:400;}
+#notes-toolbar{display:flex;gap:2px;margin-bottom:14px;flex-wrap:wrap;}
+.nt-btn{background:none;border:1px solid #e0e0e0;border-radius:4px;padding:3px 9px;font-size:12px;cursor:pointer;color:#444;line-height:1.4;}
+.nt-btn:hover{background:#f0f0f0;border-color:#bbb;}
+.nt-btn.active{background:#5c6bc0;color:#fff;border-color:#5c6bc0;}
+#notes-page-body{flex:1;border:none;outline:none;font-size:13.5px;color:#1a1f36;font-family:'Georgia',serif;line-height:1.9;background:transparent;min-height:500px;word-wrap:break-word;}
+#notes-page-body:empty::before{content:attr(data-placeholder);color:#ccc;pointer-events:none;}
+.notes-del-btn{background:none;border:none;color:#ccc;cursor:pointer;font-size:13px;float:right;padding:0 2px;line-height:1;}
+.notes-del-btn:hover{color:#ef5350;}
+
+/* STUDENT VIEW */
+#student-view{display:none;position:fixed;inset:0;background:linear-gradient(160deg,#f0f2ff 0%,#e8f5f0 50%,#fff5f0 100%);overflow-y:auto;z-index:200;flex-direction:column;}
+#student-view.open{display:flex;}
+#stu-topbar{background:linear-gradient(90deg,#3949ab 0%,#5c6bc0 100%);border-bottom:none;padding:12px 24px;display:flex;align-items:center;gap:12px;flex-shrink:0;position:sticky;top:0;z-index:10;box-shadow:0 2px 12px rgba(57,73,171,.25);}
+#stu-topbar .stu-title{font-size:14px;font-weight:700;color:#fff;letter-spacing:.02em;}
+#stu-topbar .stu-school{font-size:10px;font-weight:700;padding:3px 10px;border-radius:10px;background:rgba(255,255,255,.2);color:#fff;letter-spacing:.06em;}
+#stu-topbar .stu-chap{font-size:13px;color:rgba(255,255,255,.75);}
+#stu-home{margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:11px;cursor:pointer;padding:5px 12px;border-radius:6px;font-weight:600;}
+#stu-home:hover{background:rgba(255,255,255,.25);}
+.stu-tabs{display:flex;gap:0;border-bottom:none;background:#fff;flex-shrink:0;padding:0 24px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.stu-tab{padding:12px 22px;font-size:12px;font-weight:700;color:#9099b8;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;letter-spacing:.02em;}
+.stu-tab.active{color:#3949ab;border-bottom-color:#3949ab;}
+.stu-tab:hover{color:#5c6bc0;}
+.stu-content{flex:1;padding:28px 32px;max-width:920px;margin:0 auto;width:100%;}
+
+/* Section cards */
+.stu-section{margin-bottom:20px;background:#fff;border-radius:14px;padding:22px 24px;box-shadow:0 1px 8px rgba(0,0,0,.06);}
+.stu-section-label{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.stu-section-label::after{content:'';flex:1;height:1px;background:currentColor;opacity:.12;}
+/* Roster section */
+.sec-roster .stu-section-label{color:#3949ab;}
+#roster-semester{width:100%;background:#f5f6fa;border:1.5px solid #dde1ee;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:700;color:#1a1f36;outline:none;font-family:inherit;margin-bottom:10px;}
+#roster-semester::placeholder{color:#c8cfe8;font-weight:400;}
+#roster-upload-btn{background:#eef0fb;border:none;border-radius:10px;padding:7px 12px;color:#3949ab;font-size:12px;font-weight:700;cursor:pointer;width:100%;text-align:left;margin-bottom:6px;display:flex;align-items:center;gap:7px;}
+#roster-upload-btn:hover{background:#dde0f8;}
+#roster-upload-input{display:none;}
+#roster-upload-status{font-size:11px;color:#7986cb;margin-bottom:6px;min-height:14px;}
+/* Pool chip grid */
+#roster-pool{display:flex;flex-wrap:wrap;gap:5px;max-height:220px;overflow-y:auto;padding:10px;background:#f8f9fe;border-radius:10px;border:1.5px solid #e4e7f5;margin-bottom:4px;}
+#roster-pool:empty::after{content:'No members yet — upload a file or add below';font-size:11px;color:#b0b8d4;}
+.pool-chip{background:#fff;border:1.5px solid #dde1f0;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;color:#3949ab;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s;}
+.pool-chip:hover{background:#eef0fb;border-color:#9fa8da;}
+.pool-chip.assigned{background:#f0f0f0;color:#aaa;border-color:#e0e0e0;}
+.pool-chip-menu{position:fixed;z-index:9999;background:#fff;border-radius:10px;box-shadow:0 4px 18px rgba(0,0,0,.18);padding:6px;display:flex;flex-direction:column;gap:4px;min-width:170px;}
+.pool-chip-menu button{border:none;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;text-align:left;}
+.pcm-pray{background:#fce4ec;color:#c2185b;}
+.pcm-interested{background:#e3f2fd;color:#1565c0;}
+.pcm-consistent{background:#e8f5e9;color:#2e7d32;}
+.pcm-remove{background:#f5f5f5;color:#888;}
+#roster-add-btn{background:transparent;border:2px dashed #e0e6ff;border-radius:10px;padding:7px 12px;color:#9099b8;font-size:12px;font-weight:600;cursor:pointer;width:100%;text-align:left;margin-top:4px;}
+#roster-add-btn:hover{border-color:#7986cb;color:#3949ab;}
+/* Bucket columns */
+#roster-buckets{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;}
+.bucket-section{border-radius:12px;padding:12px 14px;}
+.bucket-pray{background:#fef6f9;border:1.5px solid #f8bbd0;}
+.bucket-interested{background:#f3f8ff;border:1.5px solid #bbdefb;}
+.bucket-consistent{background:#f3faf4;border:1.5px solid #c8e6c9;}
+.bucket-label{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;}
+.bucket-pray .bucket-label{color:#c2185b;}
+.bucket-interested .bucket-label{color:#1565c0;}
+.bucket-consistent .bucket-label{color:#2e7d32;}
+.bucket-desc{font-size:10px;color:#999;margin-bottom:10px;line-height:1.5;font-style:italic;}
+.bucket-list{display:flex;flex-direction:column;gap:6px;}
+.bucket-row{display:flex;flex-direction:column;gap:3px;background:#fff;border-radius:8px;padding:6px 8px;}
+.bucket-name{font-size:12px;font-weight:700;color:#2d3550;}
+.bucket-name-sub{font-size:10px;color:#aaa;}
+.bucket-sel{background:#f5f6fa;border:1.5px solid #e0e6f0;border-radius:6px;padding:4px 6px;font-size:11px;font-weight:600;outline:none;cursor:pointer;color:#444;width:100%;}
+.bucket-rm{background:none;border:none;color:#ddd;cursor:pointer;font-size:12px;padding:0;align-self:flex-end;margin-top:-2px;}
+.bucket-rm:hover{color:#ef5350;}
+.bucket-empty{font-size:11px;color:#ccc;font-style:italic;}
+.sec-wam .stu-section-label{color:#5c35c5;}
+.sec-wam textarea{border-color:#e8e0ff;}
+.sec-wam textarea:focus{border-color:#7c4dff;box-shadow:0 0 0 3px rgba(124,77,255,.08);}
+.sec-steps .stu-section-label{color:#00897b;}
+.sec-steps textarea{border-color:#c8ede9;}
+.sec-steps textarea:focus{border-color:#00897b;box-shadow:0 0 0 3px rgba(0,137,123,.08);}
+.sec-people .stu-section-label{color:#e64a19;}
+.sec-chapter .stu-section-label{color:#1565c0;}
+
+.stu-section textarea{width:100%;background:#fafafa;border:1.5px solid #e8eaf5;border-radius:10px;padding:12px 14px;color:#1a1f36;font-size:13px;line-height:1.7;resize:vertical;outline:none;font-family:inherit;transition:border-color .15s,box-shadow .15s;}
+#stu-notes{min-height:150px;}
+#stu-next-steps{min-height:80px;}
+textarea::placeholder{color:#c8cfe8;}
+
+/* Save button */
+.stu-save-row{display:flex;align-items:center;gap:12px;margin-top:24px;}
+#stu-save-btn{background:linear-gradient(135deg,#3949ab,#7c4dff);border:none;border-radius:10px;padding:12px 32px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(57,73,171,.35);letter-spacing:.02em;transition:box-shadow .15s,transform .1s;}
+#stu-save-btn:hover{box-shadow:0 6px 20px rgba(57,73,171,.45);transform:translateY(-1px);}
+.stu-saved-note{font-size:12px;color:#00897b;font-weight:600;display:none;}
+
+/* Access code modal */
+#ac-overlay{position:fixed;inset:0;background:rgba(20,24,48,.55);z-index:9000;display:flex;align-items:center;justify-content:center;}
+#ac-box{background:#fff;border-radius:16px;padding:32px 28px;width:320px;box-shadow:0 8px 40px rgba(0,0,0,.18);text-align:center;}
+#ac-box h2{font-size:17px;font-weight:800;color:#1a1f36;margin-bottom:6px;}
+#ac-box p{font-size:12px;color:#9099b8;margin-bottom:20px;line-height:1.5;}
+#ac-input{width:100%;background:#f5f6fa;border:1.5px solid #dde1ee;border-radius:10px;padding:10px 14px;font-size:14px;font-family:inherit;outline:none;text-align:center;letter-spacing:.05em;margin-bottom:8px;}
+#ac-input:focus{border-color:#7986cb;}
+#ac-input2{width:100%;background:#f5f6fa;border:1.5px solid #dde1ee;border-radius:10px;padding:10px 14px;font-size:14px;font-family:inherit;outline:none;text-align:center;letter-spacing:.05em;margin-bottom:8px;}
+#ac-error{font-size:11px;color:#e53935;min-height:16px;margin-bottom:8px;}
+#ac-submit{width:100%;background:linear-gradient(135deg,#3949ab,#7c4dff);border:none;border-radius:10px;padding:11px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;}
+
+/* Brothers/Sisters cards */
+.stu-invite-card{background:#fff5f2;border:1.5px solid #ffd5c8;border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.stu-invite-name{flex:1;min-width:120px;background:transparent;border:none;outline:none;color:#1a1f36;font-size:13px;font-weight:700;}
+.stu-invite-name::placeholder{color:#d4b0a8;font-weight:400;}
+.stu-invite-action{background:#fff;border:1.5px solid #ffb89e;border-radius:8px;padding:4px 10px;color:#e64a19;font-size:11px;font-weight:700;outline:none;cursor:pointer;}
+.stu-invite-other{flex:1;min-width:100px;background:#fff;border:1.5px solid #ffb89e;border-radius:8px;padding:4px 8px;color:#1a1f36;font-size:11px;outline:none;}
+.stu-invite-resp{min-width:110px;background:#fff;border:1.5px solid #ffd5c8;border-radius:8px;padding:4px 8px;color:#6b75a0;font-size:11px;outline:none;}
+.stu-invite-resp::placeholder{color:#d4b0a8;}
+.stu-invite-del{background:none;border:none;color:#ffb89e;cursor:pointer;font-size:15px;padding:0 2px;flex-shrink:0;}
+.stu-invite-del:hover{color:#ef5350;}
+.stu-add-invite{background:transparent;border:2px dashed #e0e6ff;border-radius:10px;padding:10px 14px;color:#9099b8;font-size:12px;font-weight:600;cursor:pointer;width:100%;text-align:left;transition:all .15s;margin-top:4px;}
+.stu-add-invite:hover{border-color:#7986cb;color:#3949ab;background:rgba(121,134,203,.05);}
+
+/* Chapter Outreach cards */
+.stu-outreach-card{background:#f0f6ff;border:1.5px solid #c2d9ff;border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.stu-outreach-chap{flex:1;min-width:140px;background:#fff;border:1.5px solid #c2d9ff;border-radius:8px;padding:4px 10px;color:#1565c0;font-size:12px;font-weight:700;outline:none;cursor:pointer;}
+.stu-outreach-intent{flex:2;min-width:120px;background:transparent;border:none;outline:none;color:#4a5380;font-size:12px;font-family:inherit;}
+.stu-outreach-intent::placeholder{color:#a8bcd8;}
+.stu-outreach-resp{min-width:110px;background:#fff;border:1.5px solid #c2d9ff;border-radius:8px;padding:4px 8px;color:#6b75a0;font-size:11px;outline:none;}
+.stu-outreach-resp::placeholder{color:#a8bcd8;}
+.stu-outreach-del{background:none;border:none;color:#c2d9ff;cursor:pointer;font-size:15px;padding:0 2px;flex-shrink:0;}
+.stu-outreach-del:hover{color:#ef5350;}
+
+/* Board tab */
+.stu-board-wrap{background:#fff;border-radius:14px;padding:36px 40px;box-shadow:0 2px 20px rgba(0,0,0,.08);border:1px solid #eef0fb;}
+.stu-board-hdr{font-size:22px;font-weight:800;color:#1a1f36;margin-bottom:4px;letter-spacing:-.02em;}
+.stu-board-date{font-size:12px;color:#9099b8;margin-bottom:32px;font-weight:500;}
+.stu-board-section{margin-bottom:24px;padding:18px 20px;border-radius:12px;}
+.stu-board-section.bs-wam{background:linear-gradient(135deg,rgba(124,77,255,.06),rgba(92,54,197,.04));border-left:4px solid #7c4dff;}
+.stu-board-section.bs-steps{background:linear-gradient(135deg,rgba(0,137,123,.06),rgba(0,121,107,.04));border-left:4px solid #00897b;}
+.stu-board-section.bs-people{background:linear-gradient(135deg,rgba(230,74,25,.06),rgba(191,54,12,.04));border-left:4px solid #e64a19;}
+.stu-board-section.bs-outreach{background:linear-gradient(135deg,rgba(21,101,192,.06),rgba(13,71,161,.04));border-left:4px solid #1565c0;}
+.stu-board-section-label{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+.bs-wam .stu-board-section-label{color:#7c4dff;}
+.bs-steps .stu-board-section-label{color:#00897b;}
+.bs-people .stu-board-section-label{color:#e64a19;}
+.bs-outreach .stu-board-section-label{color:#1565c0;}
+.stu-board-body{font-size:13px;color:#2d3550;line-height:1.7;white-space:pre-wrap;}
+.stu-board-empty{color:#c8cfe8;font-size:12px;font-style:italic;}
+.stu-board-person{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.05);flex-wrap:wrap;}
+.stu-board-person:last-child{border-bottom:none;}
+.stu-board-pname{font-size:13px;font-weight:700;color:#1a1f36;flex:1;min-width:100px;}
+.stu-board-action{font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;background:rgba(230,74,25,.1);color:#e64a19;}
+.bs-outreach .stu-board-action{background:rgba(21,101,192,.1);color:#1565c0;}
+.stu-board-resp{font-size:11px;color:#9099b8;font-weight:500;}
+
+/* Overview */
+.stu-overview-wrap{display:flex;gap:16px;flex-wrap:wrap;}
+.stu-ov-col{flex:1;min-width:220px;}
+.stu-ov-hdr{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:8px 12px;border-radius:8px;margin-bottom:12px;}
+.stu-ov-hdr.col-both{color:#00897b;background:rgba(0,137,123,.1);}
+.stu-ov-hdr.col-dg{color:#5c35c5;background:rgba(92,53,197,.1);}
+.stu-ov-hdr.col-none{color:#9099b8;background:rgba(144,153,184,.1);}
+.stu-ov-chip{background:#fff;border:1.5px solid #e8eaf5;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:12px;color:#1a1f36;font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.stu-ov-chip.mine{border-color:#7c4dff;background:linear-gradient(135deg,rgba(124,77,255,.07),rgba(92,54,197,.04));font-weight:700;color:#5c35c5;}
+.stu-ov-empty{color:#c8cfe8;font-size:11px;font-style:italic;padding:12px 0;}
+.stu-overview-wrap{display:flex;gap:16px;flex-wrap:wrap;}
+.stu-ov-col{flex:1;min-width:220px;}
+.stu-ov-hdr{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border-radius:6px;margin-bottom:12px;}
+.stu-ov-hdr.col-both{color:#00897b;background:rgba(0,137,123,.08);}
+.stu-ov-hdr.col-dg{color:#7986cb;background:rgba(121,134,203,.08);}
+.stu-ov-hdr.col-none{color:#9099b8;background:rgba(144,153,184,.08);}
+.stu-ov-chip{background:#fff;border:1px solid #dde1ee;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:12px;color:#1a1f36;font-weight:500;}
+.stu-ov-chip.mine{border-color:#7986cb;background:rgba(121,134,203,.06);font-weight:700;}
+.stu-ov-empty{color:#c8cfe8;font-size:11px;font-style:italic;padding:12px 0;}
+</style>
+</head>
+<body>
+
+<!-- ENTRY SCREEN -->
+<div id="entry-screen">
+  <div class="entry-card">
+    <div class="entry-logo">Discovery<span>Group</span> Process</div>
+    <div class="entry-sub"></div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
+      <div style="display:flex;gap:10px;">
+        <select id="stu-school" class="entry-select" style="flex:1;">
+          <option value="">Select school...</option>
+          <option value="psu">Penn State</option>
+          <option value="osu">Ohio State</option>
+          <option value="ncaa">NCAA Basketball</option>
+        </select>
+        <select id="stu-chapter" class="entry-select" style="flex:1;" disabled>
+          <option value="">Organization...</option>
+        </select>
+      </div>
+      <button id="stu-enter" class="entry-btn" disabled style="width:100%;">Enter →</button>
+    </div>
+    <div id="stu-error" class="entry-error">Please select a school and organization.</div>
+
+    <div class="entry-divider">or</div>
+
+    <div class="entry-row">
+      <input type="password" id="staff-code" class="entry-input" placeholder="Enter access code...">
+      <button id="staff-enter" class="entry-btn">Enter →</button>
+    </div>
+    <div id="staff-error" class="entry-error">Invalid code. Try again.</div>
+  </div>
+</div>
+
+<!-- ADMIN TOPBAR -->
+<div id="topbar">
+  <!-- Navigation -->
+  <button id="logout-btn" style="background:none;border:none;color:#b0b8d4;font-size:11px;cursor:pointer;padding:5px 8px;border-radius:6px;" title="Back to login">← Exit</button>
+  <button id="home-btn">⌂ Home</button>
+  <div style="width:1px;height:20px;background:#dde1ee;margin:0 4px;flex-shrink:0;"></div>
+  <!-- Identity -->
+  <span id="frontier-badge"></span>
+  <h1 id="tracker-title">Chapter Tracker</h1>
+  <span class="count" id="total-count"></span>
+  <div style="flex:1;"></div>
+  <!-- Search -->
+  <input id="search" type="text" placeholder="Search chapters…">
+  <div style="width:1px;height:20px;background:#dde1ee;margin:0 4px;flex-shrink:0;"></div>
+  <!-- Actions -->
+  <button id="board-btn">📋 Board View</button>
+  <button id="recap-btn" class="topbar-btn" style="color:#00897b;border-color:#b2dfdb;">↓ Weekly Recap</button>
+  <button id="export-btn" class="topbar-btn">↓ Export</button>
+  <label class="topbar-btn" style="cursor:pointer;">↑ Import<input type="file" accept=".json,.html" style="display:none;" id="import-inp"></label>
+  <button id="undo-btn" class="topbar-btn" disabled>↩ Undo</button>
+  <div style="width:1px;height:20px;background:#dde1ee;margin:0 4px;flex-shrink:0;"></div>
+  <button id="notes-btn" class="topbar-btn" style="color:#5c6bc0;border-color:#c5cae9;">📝 Notes</button>
+</div>
+
+<!-- ADMIN MAIN -->
+<div id="main">
+  <div id="sidebar"></div>
+  <div id="panel">
+    <div id="empty"></div>
+    <div id="chapter-panel" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- NOTES VIEW -->
+<div id="notes-view">
+  <div id="notes-topbar">
+    <span class="notes-frontier" id="notes-frontier-label"></span>
+    <span class="notes-sub" id="notes-saved-label"></span>
+    <button onclick="document.getElementById('notes-view').classList.remove('open')" style="background:none;border:1px solid #ccc;border-radius:4px;padding:4px 12px;color:#666;font-size:11px;cursor:pointer;">← Back</button>
+  </div>
+  <div id="notes-main">
+    <div id="notes-sidebar">
+      <div class="ns-hdr">Pages</div>
+      <div id="notes-page-list"></div>
+      <button id="notes-new-btn">+ New Page</button>
+    </div>
+    <div id="notes-content">
+      <div id="notes-page">
+        <input id="notes-page-title" placeholder="Untitled page">
+        <div id="notes-toolbar">
+          <button class="nt-btn" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+          <button class="nt-btn" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+          <button class="nt-btn" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+          <button class="nt-btn" data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+          <button class="nt-btn" data-cmd="insertUnorderedList" title="Bullet list">• List</button>
+          <button class="nt-btn" data-cmd="insertOrderedList" title="Numbered list">1. List</button>
+          <button class="nt-btn" data-cmd="removeFormat" title="Clear formatting">✕ Clear</button>
+        </div>
+        <div id="notes-page-body" contenteditable="true" data-placeholder="Start typing…"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOARD VIEW (admin + master) -->
+<div id="board-view">
+  <div id="board-topbar">
+    <h2 id="board-title">Weekly Board</h2>
+    <span id="board-subtitle"></span>
+    <button id="board-notes-btn" style="background:none;border:1px solid #c5cae9;border-radius:6px;padding:5px 12px;color:#5c6bc0;font-size:11px;cursor:pointer;font-weight:600;">📝 Notes</button>
+    <button id="close-board">← Back</button>
+  </div>
+  <div id="board-cols">
+    <div class="board-col col-both">
+      <div class="board-col-hdr">DG + WAM <span class="col-count" id="cnt-both">0</span></div>
+      <div id="cards-both"></div>
+    </div>
+    <div class="board-col col-dg">
+      <div class="board-col-hdr">Discovery Group <span class="col-count" id="cnt-dg">0</span></div>
+      <div id="cards-dg"></div>
+    </div>
+    <div class="board-col col-none">
+      <div class="board-col-hdr">No Group <span class="col-count" id="cnt-none">0</span></div>
+      <div id="cards-none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ACCESS CODE MODAL -->
+<div id="ac-overlay" style="display:none;">
+  <div id="ac-box">
+    <div style="text-align:right;margin-bottom:4px;"><button id="ac-close" style="background:none;border:none;font-size:18px;color:#c8cfe8;cursor:pointer;line-height:1;">×</button></div>
+    <h2 id="ac-title">Chapter Access</h2>
+    <p id="ac-desc">Enter your access code to continue.</p>
+    <input id="ac-input" type="password" placeholder="Access code" autocomplete="off">
+    <input id="ac-input2" type="password" placeholder="Confirm code" autocomplete="off" style="display:none;">
+    <div id="ac-error"></div>
+    <button id="ac-submit">Continue →</button>
+    <div style="margin-top:12px;"><button id="ac-reset-link" style="background:none;border:none;color:#b0b8d4;font-size:11px;cursor:pointer;text-decoration:underline;">Forgot your code? Reset it</button></div>
+    <div style="margin-top:8px;font-size:10px;color:#c8cfe8;">Don't know the key? Ask your Discovery Group Process Leader.</div>
+  </div>
+</div>
+
+<!-- STUDENT VIEW -->
+<div id="student-view">
+  <div id="stu-topbar">
+    <div class="stu-title">Discovery Group Tracker</div>
+    <span id="stu-school-badge" class="stu-school"></span>
+    <span id="stu-chap-label" class="stu-chap"></span>
+    <button id="stu-reset-all" style="background:#f5f6fa;border:1.5px solid #e0e4f0;border-radius:8px;font-size:11px;font-weight:600;color:#7986cb;cursor:pointer;padding:5px 12px;">↩ Reset All</button>
+    <button id="stu-export-btn" style="background:#f5f6fa;border:1.5px solid #e0e4f0;border-radius:8px;font-size:11px;font-weight:600;color:#3949ab;cursor:pointer;padding:5px 12px;">⬇ Export</button>
+    <button id="stu-import-btn" style="background:#f5f6fa;border:1.5px solid #e0e4f0;border-radius:8px;font-size:11px;font-weight:600;color:#3949ab;cursor:pointer;padding:5px 12px;">⬆ Import</button>
+    <input id="stu-import-input" type="file" accept=".json" style="display:none;">
+    <button id="stu-reset-code" style="background:#f5f6fa;border:1.5px solid #e0e4f0;border-radius:8px;font-size:11px;font-weight:600;color:#b0b8d4;cursor:pointer;padding:5px 12px;">🔑 Reset Code</button>
+    <button id="stu-home">← Exit</button>
+  </div>
+  <div class="stu-tabs">
+    <div class="stu-tab active" data-tab="chapter">My Chapter</div>
+    <div class="stu-tab" data-tab="board">📋 Board</div>
+  </div>
+  <div class="stu-content">
+    <div id="stu-tab-chapter">
+      <div class="stu-section sec-roster">
+        <div class="stu-section-label">Chapter Members</div>
+        <input id="roster-semester" placeholder="Semester (e.g. Fall 2026)" style="margin-bottom:14px;">
+        <button id="roster-upload-btn">📂 Upload File (Word or Excel)</button>
+        <input id="roster-upload-input" type="file" accept=".xlsx,.xls,.csv,.docx,.txt">
+        <div id="roster-upload-status"></div>
+        <div id="roster-pool"></div>
+        <div style="display:flex;gap:7px;margin-top:6px;">
+          <input id="roster-add-name" placeholder="Full name" style="flex:1;background:#fafafa;border:1.5px solid #e8eaf0;border-radius:8px;padding:7px 10px;font-size:13px;outline:none;font-family:inherit;">
+          <select id="roster-add-year" style="background:#fafafa;border:1.5px solid #e8eaf0;border-radius:8px;padding:7px 8px;font-size:12px;color:#5c6bc0;font-weight:600;outline:none;cursor:pointer;">
+            <option value="">Year…</option>
+            <option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option>
+          </select>
+          <button id="roster-add-btn" style="background:#3949ab;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">+ Add</button>
+        </div>
+      </div>
+      <div id="roster-buckets"></div>
+      <div class="stu-save-row">
+        <button id="stu-save-btn">✓ Save &amp; View Board</button>
+        <span class="stu-saved-note" id="stu-saved-note">Saved!</span>
+      </div>
+    </div>
+    <div id="stu-tab-board" style="display:none;">
+      <div class="stu-board-wrap">
+        <button onclick="switchStuTab('chapter')" style="background:none;border:none;color:#7986cb;font-size:13px;font-weight:700;cursor:pointer;padding:0;margin-bottom:14px;">← Back</button>
+        <div class="stu-board-hdr" id="board-chap-name"></div>
+        <div class="stu-board-date" id="board-date"></div>
+        <div id="board-bucket-cols" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;"></div>
+        <div style="background:#f8f9fe;border:1.5px solid #e4e7f5;border-radius:12px;padding:14px;margin-bottom:14px;">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#7986cb;margin-bottom:8px;">Notes</div>
+          <textarea id="board-notes-area" placeholder="Notes from this week…" style="width:100%;min-height:120px;background:#fff;border:1.5px solid #e4e7f5;border-radius:8px;padding:10px;font-size:13px;font-family:inherit;color:#2d3550;outline:none;resize:vertical;line-height:1.6;"></textarea>
+        </div>
+        <button id="board-export-btn" style="background:linear-gradient(135deg,#3949ab,#7c4dff);border:none;border-radius:10px;padding:10px 24px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(57,73,171,.3);">⬇ Download This Week's Copy</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== FRONTIER CONFIG =====
+const PSU_IFC_STICKERS = [
+  { key:'coaching',  label:'Coaching Others',       color:'#37474f' },
+  { key:'reproduced',label:'Reproduced',            color:'#6d4c41' },
+  { key:'thinking',  label:'Thinking for Chapter',  color:'#e65100' },
+  { key:'wam',       label:'WAM',                   color:'#2e7d32' },
+  { key:'pod',       label:'POD',                   color:'#00897b' },
+  { key:'launched',  label:'Launched',              color:'#3f51b5' },
+  { key:'pop',       label:'Person of Peace',       color:'#9c27b0' },
+  { key:'prayer',    label:'Prayer',                color:'#e91e63' },
+];
+
+const PSU_CATEGORIES = [
+  {
+    id:'ifc', label:'Fraternities', cls:'cat-ifc',
+    chapters:[
+      'Acacia','Alpha Chi Rho (Crow)','Alpha Epsilon Pi (AEPi)','Alpha Kappa Lambda (Alpha Kapp)',
+      'Alpha Phi Delta (APD)','Alpha Sigma Phi (Alpha Sig)',
+      'Alpha Tau Omega (ATO)','Beta Sigma Beta (BSB)',
+      'Chi Phi',
+      'Delta Chi (D-Chi)','Delta Kappa Epsilon (DKE)','Delta Sigma Phi (Delta Sig)',
+      'Delta Upsilon (DU)','Kappa Sigma (Kappa Sig)',
+      'Lambda Chi Alpha (Lambda Chi)','Phi Delta Theta (Phi Delt)','Phi Gamma Delta (FIJI)',
+      'Phi Kappa Psi (Phi Psi)','Phi Kappa Sigma (Skull)','Phi Kappa Tau (Phi Tau)','Phi Kappa Theta (Phi Who)','Phi Sigma Kappa (Far Sig)',
+      'Pi Kappa Alpha (Pike)','Pi Kappa Phi (Pi Kapp)',
+      'Sigma Alpha Epsilon (SAE)',
+      'Sigma Chi (Sig Chi)','Sigma Nu (Sig Nu)','Sigma Phi Epsilon (SigEp)','Sigma Pi (Sig Pi)','Tau Epsilon Phi (TEP)','Tau Kappa Epsilon (TKE)',
+      'Theta Chi','Theta Delta Chi (TDX)','Zeta Beta Tau (ZBT)','Zeta Psi'
+    ]
+  },
+  {
+    id:'pan', label:'Sororities', cls:'cat-pan',
+    chapters:[
+      'Alpha Chi Omega (AXO)','Alpha Delta Pi (ADPi)','Alpha Epsilon Phi (AEPhi)',
+      'Alpha Gamma Delta (AGD)','Alpha Omicron Pi (AOII)','Alpha Phi (A Phi)',
+      'Alpha Xi Delta (AXiD)','Chi Omega (Chi O)',
+      'Delta Delta Delta (Tri Delt)','Delta Gamma (DG)','Delta Phi Epsilon (DPhiE)',
+      'Delta Zeta (DZ)','Gamma Phi Beta (Gamma Phi)','Kappa Alpha Theta (Theta)',
+      'Kappa Delta (KD)','Kappa Kappa Gamma (Kappa)',
+      'Phi Sigma Sigma (Phi Sig)','Pi Beta Phi (Pi Phi)','Sigma Delta Tau (SDT)','Sigma Kappa (SK)',
+      'Zeta Tau Alpha (ZTA)'
+    ]
+  },
+  {
+    id:'oth', label:'Other Orgs', cls:'cat-oth',
+    chapters:[
+      'Alpha Kappa Psi (AKPsi — Business)','Delta Sigma Pi (DSP — Business)','Phi Chi Theta (PCT — Business)',
+      'Phi Gamma Nu (PGN — Business)','Alpha Phi Omega (APO — Service)',
+      'Alpha Phi Alpha (APA — Divine 9)','Kappa Alpha Psi (Kappas — Divine 9)',
+      'Omega Psi Phi (Ques — Divine 9)','Phi Beta Sigma (Sigmas — Divine 9)',
+      'Iota Phi Theta (Iotas — Divine 9)',
+      'Lambda Upsilon Lambda (Lambdas — MGC)','Alpha Psi Lambda (APL — MGC)',
+      'Sigma Lambda Beta (SLB — MGC)','Nu Alpha Kappa (NAK — MGC)',
+      'Alpha Epsilon Delta (AED — Pre-Health)','Phi Delta Epsilon (PhiDE — Pre-Med)','Pi Epsilon Kappa (PEK — Health)',
+      'Club Baseball','Club Basketball (M)','Club Basketball (W)',
+      'Club Bowling','Club Cheerleading','Club Crew (M)','Club Crew (W)',
+      'Club Cricket','Club Cycling','Club Equestrian','Club Fencing',
+      'Club Field Hockey','Club Flag Football (W)','Club Golf (M)','Club Golf (W)',
+      'Club Gymnastics','Club Hockey','Club Ice Hockey (W)','Club Lacrosse (M)','Club Lacrosse (W)',
+      'Club Pickleball','Club Polo','Club Powerlifting','Club Rock Climbing',
+      'Club Rugby','Club Sailing','Club Skiing & Snowboarding','Club Softball (W)',
+      'Club Soccer (M)','Club Soccer (W)','Club Squash','Club Swim & Dive',
+      'Club Table Tennis','Club Tennis (M)','Club Tennis (W)','Club Track & Field',
+      'Club Triathlon','Club Ultimate Frisbee (M)','Club Ultimate Frisbee (W)',
+      'Club Volleyball (M)','Club Volleyball (W)','Club Water Polo','Club Wrestling'
+    ]
+  }
+];
+
+const OSU_CATEGORIES = [
+  {
+    id:'ifc', label:'Fraternities', cls:'cat-ifc',
+    chapters:[
+      'Acacia',
+      'Alpha Chi Rho (Crow)','Alpha Epsilon Pi (AEPi)','Alpha Gamma Rho (AGR)',
+      'Alpha Sigma Phi (Alpha Sig)','Alpha Tau Omega (ATO)',
+      'Beta Theta Pi (Beta)',
+      'Chi Phi','Chi Psi',
+      'Delta Chi (D-Chi)','Delta Kappa Epsilon (DKE)','Delta Sigma Phi (Delta Sig)',
+      'Delta Tau Delta (Delt)','Delta Upsilon (DU)',
+      'Farmhouse',
+      'Kappa Alpha Order (KA)','Kappa Delta Rho (KDR)','Kappa Sigma (Kappa Sig)',
+      'Lambda Chi Alpha (Lambda Chi)',
+      'Phi Delta Theta (Phi Delt)','Phi Gamma Delta (FIJI)',
+      'Phi Kappa Psi (Phi Psi)','Phi Kappa Sigma (Skull)','Phi Kappa Tau (Phi Tau)','Phi Sigma Kappa (Phi Sig)',
+      'Pi Kappa Alpha (Pike)','Pi Kappa Phi (Pi Kapp)',
+      'Sigma Alpha Epsilon (SAE)','Sigma Alpha Mu (Sammy)',
+      'Sigma Chi (Sig Chi)','Sigma Nu (Sig Nu)','Sigma Phi Epsilon (SigEp)','Sigma Pi',
+      'Tau Kappa Epsilon (TKE)',
+      'Theta Chi','Theta Delta Chi (TDX)',
+      'Zeta Beta Tau (ZBT)','Zeta Psi'
+    ]
+  },
+  {
+    id:'pan', label:'Sororities', cls:'cat-pan',
+    chapters:[
+      'Alpha Chi Omega (AXO)','Alpha Delta Pi (ADPi)','Alpha Epsilon Phi (AEPhi)',
+      'Alpha Gamma Delta (AGD)','Alpha Omicron Pi (AOII)','Alpha Phi (A Phi)',
+      'Alpha Xi Delta (AXiD)',
+      'Chi Omega (Chi O)',
+      'Delta Delta Delta (Tri Delt)','Delta Gamma (DG)','Delta Phi Epsilon (DPhiE)',
+      'Delta Zeta (DZ)',
+      'Gamma Phi Beta (Gamma Phi)',
+      'Kappa Alpha Theta (Theta)','Kappa Delta (KD)','Kappa Kappa Gamma (Kappa)',
+      'Phi Mu','Pi Beta Phi (Pi Phi)',
+      'Sigma Delta Tau (SDT)','Sigma Kappa (SK)',
+      'Zeta Tau Alpha (ZTA)'
+    ]
+  }
+];
+
+const BLANK_CATEGORIES = [
+  { id:'groups', label:'Schools / Teams', cls:'cat-ifc', chapters:[] }
+];
+
+const FRONTIERS = [
+  { id:'psu',    name:'Penn State',      shortName:'PSU',    adminCode:'PSUbb',    studentEnabled:true,  term:{s:'chapter',p:'chapters'}, categories: PSU_CATEGORIES },
+  { id:'osu',    name:'Ohio State',       shortName:'OSU',    adminCode:'OSUbb',    studentEnabled:true,  term:{s:'chapter',p:'chapters'}, categories: OSU_CATEGORIES },
+  { id:'ncaa',   name:'NCAA Basketball',  shortName:'NCAA',   adminCode:'NCAAbb',   studentEnabled:true,  term:{s:'team',p:'teams'},       categories: JSON.parse(JSON.stringify(BLANK_CATEGORIES)) },
+  { id:'alumni', name:'Alumni Networks',  shortName:'Alumni', adminCode:'Alumnibb', studentEnabled:false, term:{s:'city',p:'cities'},      categories: [{ id:'groups', label:'Cities', cls:'cat-ifc', chapters:['New York','Philadelphia','Chicago','Washington DC','Pittsburgh','Boston'] }] },
+];
+const MASTER_CODE = 'DGPbb';
+
+const CAT_COLORS = {ifc:'#7986cb', pan:'#ec407a', oth:'#26c6da', groups:'#7986cb'};
+const CAT_BADGE_STYLE = {
+  ifc:    'background:rgba(121,134,203,.12);color:#7986cb;',
+  pan:    'background:rgba(236,64,122,.12);color:#ec407a;',
+  oth:    'background:rgba(0,137,123,.12);color:#00897b;',
+  groups: 'background:rgba(121,134,203,.12);color:#7986cb;'
+};
+const STATUS_STYLE  = {pod:'background:rgba(239,83,80,.12);color:#ef5350;', growth:'background:rgba(0,137,123,.12);color:#00897b;', watching:'background:rgba(121,134,203,.12);color:#7986cb;'};
+const STATUS_LABEL  = {pod:'Point of Decision', growth:'Steps of Growth', watching:'Watching'};
+const PASSCODE = 'Isaiah55';
+
+const COACH_PALETTE = [
+  ['#5c6bc0','rgba(92,107,192,.1)'],   // indigo
+  ['#00897b','rgba(0,137,123,.1)'],    // teal
+  ['#ef6c00','rgba(239,108,0,.1)'],    // orange
+  ['#8e24aa','rgba(142,36,170,.1)'],   // purple
+  ['#1565c0','rgba(21,101,192,.1)'],   // blue
+  ['#c62828','rgba(198,40,40,.1)'],    // red
+  ['#2e7d32','rgba(46,125,50,.1)'],    // green
+  ['#ad1457','rgba(173,20,87,.1)'],    // pink
+  ['#00838f','rgba(0,131,143,.1)'],    // cyan
+  ['#6d4c41','rgba(109,76,65,.1)'],    // brown
+];
+function nickName(chap){ const m=chap.match(/\(([^)]+)\)$/); return m?m[1]:chap; }
+
+const OTHER_SUB_CATS=[
+  {label:'Business',  color:'#ef6c00', test:c=>c.includes('Business)')},
+  {label:'Service',   color:'#00838f', test:c=>c.includes('Service)')},
+  {label:'Divine 9',  color:'#8e24aa', test:c=>c.includes('Divine 9)')},
+  {label:'MGC',       color:'#1565c0', test:c=>c.includes('MGC)')},
+  {label:'Pre-Health',color:'#2e7d32', test:c=>c.includes('Pre-Health)')||c.includes('Pre-Med)')||c.includes('Health)')},
+  {label:'Club Sports',color:'#ad1457',test:c=>c.startsWith('Club ')},
+];
+function coachColor(name){
+  if(!name) return null;
+  let h=0; for(let i=0;i<name.length;i++) h=(h*31+name.charCodeAt(i))>>>0;
+  return COACH_PALETTE[h % COACH_PALETTE.length];
+}
+
+// ===== APP STATE =====
+let ACTIVE_FID = null;
+let ACTIVE_FRONTIER = null;
+let ACTIVE_CATEGORIES = [];
+let MODE = null; // 'admin' | 'student' | 'master'
+let STU_FID = null, STU_CAT_ID = null, STU_CHAP = null;
+
+// ===== STORAGE =====
+const LS_KEY = 'dg_tracker_v3';
+let _db = /*SAVED_DB_START*/{}/*SAVED_DB_END*/;
+try{ const _ls=localStorage.getItem(LS_KEY); if(_ls) _db=JSON.parse(_ls); }catch(e){}
+function _persist(){ try{ localStorage.setItem(LS_KEY,JSON.stringify(_db)); }catch(e){} }
+
+function load(catId,chap){ return ACTIVE_FID ? (_db[ACTIVE_FID+'__'+catId+'__'+chap]||{}) : {}; }
+function save(catId,chap,data){ if(!ACTIVE_FID)return; _db[ACTIVE_FID+'__'+catId+'__'+chap]={...data,_updated:Date.now()}; _persist(); }
+function loadFor(fid,catId,chap){ return _db[fid+'__'+catId+'__'+chap]||{}; }
+function loadStudent(fid,catId,chap){ return _db['stu__'+fid+'__'+catId+'__'+chap]||{}; }
+function saveStudent(fid,catId,chap,data){ _db['stu__'+fid+'__'+catId+'__'+chap]={...data,_updated:Date.now()}; _persist(); }
+function loadMilestones(catId,chap){ return ACTIVE_FID ? (_db['ms__'+ACTIVE_FID+'__'+catId+'__'+chap]||{}) : {}; }
+function saveMilestones(catId,chap,data){ if(!ACTIVE_FID)return; _db['ms__'+ACTIVE_FID+'__'+catId+'__'+chap]=data; _persist(); }
+
+// Chapter list state (frontier-aware)
+const _removed = /*SAVED_REMOVED_START*/{}/*SAVED_REMOVED_END*/;
+const _custom  = /*SAVED_CUSTOM_START*/{}/*SAVED_CUSTOM_END*/;
+
+function initFrontierState(fid, cats){
+  if(!_removed[fid]) _removed[fid]={};
+  if(!_custom[fid])  _custom[fid]={};
+  cats.forEach(c=>{
+    if(!_removed[fid][c.id]) try{ _removed[fid][c.id]=JSON.parse(localStorage.getItem(`rem__${fid}__${c.id}`))||[]; }catch(e){ _removed[fid][c.id]=[]; }
+    if(!_custom[fid][c.id])  try{ _custom[fid][c.id]=JSON.parse(localStorage.getItem(`cus__${fid}__${c.id}`))||[]; }catch(e){ _custom[fid][c.id]=[]; }
+  });
+}
+
+FRONTIERS.forEach(f=> initFrontierState(f.id, f.categories));
+
+const undoStack = [];
+function snapshot(){ return JSON.parse(JSON.stringify({removed:_removed[ACTIVE_FID], custom:_custom[ACTIVE_FID]})); }
+
+function persistChapters(){
+  if(!ACTIVE_FID) return;
+  ACTIVE_CATEGORIES.forEach(c=>{
+    try{ localStorage.setItem(`rem__${ACTIVE_FID}__${c.id}`,JSON.stringify(_removed[ACTIVE_FID][c.id])); }catch(e){}
+    try{ localStorage.setItem(`cus__${ACTIVE_FID}__${c.id}`,JSON.stringify(_custom[ACTIVE_FID][c.id])); }catch(e){}
+  });
+  const btn=document.getElementById('undo-btn');
+  if(btn){ btn.disabled=undoStack.length===0; btn.style.color=undoStack.length?'#7986cb':'#3a4560'; }
+}
+
+function removeChapter(catId,chap){
+  const baseCat = ACTIVE_CATEGORIES.find(c=>c.id===catId); if(!baseCat) return;
+  undoStack.push(snapshot());
+  if(baseCat.chapters.includes(chap)){ if(!_removed[ACTIVE_FID][catId].includes(chap)) _removed[ACTIVE_FID][catId].push(chap); }
+  else { _custom[ACTIVE_FID][catId]=_custom[ACTIVE_FID][catId].filter(c=>c!==chap); }
+  persistChapters();
+}
+function addChapter(catId,chap){
+  const baseCat = ACTIVE_CATEGORIES.find(c=>c.id===catId); if(!baseCat) return;
+  undoStack.push(snapshot());
+  if(!_custom[ACTIVE_FID][catId].includes(chap)&&!baseCat.chapters.includes(chap)) _custom[ACTIVE_FID][catId].push(chap);
+  _removed[ACTIVE_FID][catId]=_removed[ACTIVE_FID][catId].filter(c=>c!==chap);
+  persistChapters();
+}
+function allChapters(cat){
+  if(!ACTIVE_FID) return [];
+  const rem = (_removed[ACTIVE_FID]||{})[cat.id]||[];
+  const cus = (_custom[ACTIVE_FID]||{})[cat.id]||[];
+  return [...cat.chapters.filter(c=>!rem.includes(c)), ...cus];
+}
+function allChaptersFor(fid,cat){
+  const rem = (_removed[fid]||{})[cat.id]||[];
+  const cus = (_custom[fid]||{})[cat.id]||[];
+  return [...cat.chapters.filter(c=>!rem.includes(c)), ...cus];
+}
+
+// ===== ROUTING =====
+function collectStats(fid, cats, loadFn){
+  let total=0, both=0, dgOnly=0, nothing=0, pod=0, growth=0;
+  const coachMap={};
+  cats.forEach(cat=>{
+    (fid ? allChaptersFor(fid,cat) : allChapters(cat)).forEach(chap=>{
+      total++;
+      const d=loadFn(cat.id,chap);
+      if(d.hasDG&&d.hasWAM){ both++; }
+      else if(d.hasDG){ dgOnly++; }
+      else { nothing++; }
+      (d.students||[]).forEach(s=>{ if(s.status==='pod') pod++; if(s.status==='growth') growth++; });
+      if(d.coach&&d.coach.trim()){
+        const c=d.coach.trim();
+        if(!coachMap[c]) coachMap[c]=[];
+        coachMap[c].push({cat,chap});
+      }
+    });
+  });
+  return {total,both,dgOnly,nothing,pod,growth,coachMap};
+}
+
+function makeCatBar(cat, loadFn){
+  const chaps=allChapters(cat);
+  let both=0,dgOnly=0,nothing=0;
+  chaps.forEach(chap=>{ const d=loadFn(cat.id,chap); if(d.hasDG&&d.hasWAM) both++; else if(d.hasDG) dgOnly++; else nothing++; });
+  const total=chaps.length||1;
+  const pBoth=Math.round(both/total*100), pDG=Math.round(dgOnly/total*100), pNone=100-pBoth-pDG;
+  return `<div class="dash-section-label" style="margin-top:14px;">${cat.label} <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#b0b8d4;">${chaps.length} orgs</span></div>
+    <div style="display:flex;border-radius:4px;overflow:hidden;height:10px;margin:6px 0 4px;background:#eef0fb;">
+      <div style="width:${pBoth}%;background:#00897b;transition:width .3s;"></div>
+      <div style="width:${pDG}%;background:#7986cb;transition:width .3s;"></div>
+      <div style="width:${pNone}%;background:#e8eaf5;"></div>
+    </div>
+    <div style="display:flex;gap:14px;font-size:10px;color:#6b75a0;">
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#00897b;margin-right:4px;vertical-align:middle;"></span>DG+WAM: <strong>${both}</strong></span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#7986cb;margin-right:4px;vertical-align:middle;"></span>DG only: <strong>${dgOnly}</strong></span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#e8eaf5;border:1px solid #dde1ee;margin-right:4px;vertical-align:middle;"></span>Not started: <strong>${nothing}</strong></span>
+    </div>`;
+}
+
+function renderDashboard(){
+  const el=document.getElementById('empty');
+  const now=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const {total,both,dgOnly,nothing,pod,growth,coachMap}=collectStats(null,ACTIVE_CATEGORIES,load);
+
+  const catBars=ACTIVE_CATEGORIES.map(cat=>makeCatBar(cat,load)).join('');
+
+  const coachRows=Object.keys(coachMap).sort().map(coach=>{
+    const chips=coachMap[coach].map(({cat,chap})=>`<span class="dash-coach-chip" data-cat="${cat.id}" data-chap="${chap}">${nickName(chap)}</span>`).join('');
+    return `<div class="dash-coach-row"><span class="dash-coach-name">${coach}</span><span class="dash-coach-chips">${chips}</span></div>`;
+  }).join('');
+
+  el.innerHTML=`
+    <div class="dash-greeting">${ACTIVE_FRONTIER.name}</div>
+    <div class="dash-sub">${now}</div>
+    <div class="dash-stats">
+      <div class="dash-stat"><div class="dash-stat-num">${total}</div><div class="dash-stat-label">Total Orgs</div></div>
+      <div class="dash-stat accent-both"><div class="dash-stat-num">${both}</div><div class="dash-stat-label">DG + WAM</div></div>
+      <div class="dash-stat accent-dg"><div class="dash-stat-num">${dgOnly}</div><div class="dash-stat-label">DG Only</div></div>
+      <div class="dash-stat"><div class="dash-stat-num" style="color:#b0b8d4;">${nothing}</div><div class="dash-stat-label">Not Started</div></div>
+      <div class="dash-stat accent-pod"><div class="dash-stat-num">${pod}</div><div class="dash-stat-label">Pt. of Decision</div></div>
+      <div class="dash-stat accent-growth"><div class="dash-stat-num">${growth}</div><div class="dash-stat-label">Steps of Growth</div></div>
+    </div>
+    <div class="dash-section-label" style="margin-top:4px;">By Category</div>
+    <div style="background:#fff;border:1px solid #dde1ee;border-radius:10px;padding:14px 16px;margin-bottom:20px;">${catBars}</div>
+    ${coachRows?`<div class="dash-section-label">Coaches</div><div class="dash-coaches">${coachRows}</div>`:''}`;
+
+  el.querySelectorAll('.dash-coach-chip').forEach(chip=>{
+    chip.addEventListener('click',()=>{
+      const catId=chip.dataset.cat, chap=chip.dataset.chap;
+      const cat=ACTIVE_CATEGORIES.find(c=>c.id===catId);
+      if(!cat) return;
+      activeKey=catId+'__'+chap;
+      openCats[catId]=true;
+      openChapter(cat,chap);
+      buildSidebar(document.getElementById('search').value);
+    });
+  });
+}
+
+function enterAdmin(frontier){
+  ACTIVE_FID = frontier.id;
+  ACTIVE_FRONTIER = frontier;
+  ACTIVE_CATEGORIES = frontier.categories;
+  if(!_removed[ACTIVE_FID]) initFrontierState(ACTIVE_FID, ACTIVE_CATEGORIES);
+  MODE = 'admin';
+  document.getElementById('entry-screen').style.display='none';
+  document.getElementById('topbar').style.display='flex';
+  document.getElementById('main').style.display='flex';
+  document.getElementById('frontier-badge').textContent=frontier.shortName;
+  const T=frontier.term||{s:'chapter',p:'chapters'};
+  document.getElementById('tracker-title').textContent=frontier.name+' '+T.s[0].toUpperCase()+T.s.slice(1)+' Tracker';
+  document.getElementById('search').placeholder='Search '+T.p+'…';
+  undoStack.length=0;
+  activeKey=null;
+  openCats={};
+  if(ACTIVE_CATEGORIES.length) openCats[ACTIVE_CATEGORIES[0].id]=true;
+  document.getElementById('empty').style.display='block';
+  document.getElementById('chapter-panel').style.display='none';
+  renderDashboard();
+  buildSidebar();
+}
+
+function enterMaster(){
+  MODE='master';
+  document.getElementById('entry-screen').style.display='none';
+  document.getElementById('board-title').textContent='All Frontiers — Discovery Group Board';
+  buildMasterBoard();
+  document.getElementById('board-view').classList.add('open');
+}
+
+const UNIVERSAL_CODE='DiscoveryGroupWAM';
+const MASTER_RESET_KEY='ResetAccess';
+function chapCodeKey(fid,catId,chap){ return 'chapcode__'+fid+'__'+catId+'__'+chap; }
+
+function enterStudent(fid, catId, chap){
+  STU_FID=fid; STU_CAT_ID=catId; STU_CHAP=chap;
+  MODE='student';
+  const frontier=FRONTIERS.find(f=>f.id===fid);
+  const existing=localStorage.getItem(chapCodeKey(fid,catId,chap));
+  const isNew=!existing;
+
+  const overlay=document.getElementById('ac-overlay');
+  const inp=document.getElementById('ac-input');
+  const inp2=document.getElementById('ac-input2');
+  const err=document.getElementById('ac-error');
+  document.getElementById('ac-title').textContent=isNew?'Create Access Code':'Enter Access Code';
+  document.getElementById('ac-desc').textContent=isNew
+    ?'Set a code to protect this chapter\'s data. You\'ll need it each time you open this chapter.'
+    :'Enter your access code for '+chap+'.';
+  inp2.style.display=isNew?'block':'none';
+  inp.value=''; inp2.value=''; err.textContent='';
+  overlay.style.display='flex';
+  document.getElementById('ac-close').onclick=()=>{ overlay.style.display='none'; };
+  setTimeout(()=>inp.focus(),80);
+
+  const submit=document.getElementById('ac-submit');
+  const handler=()=>{
+    const val=inp.value.trim();
+    if(!val){ err.textContent='Please enter a code.'; return; }
+    if(val===UNIVERSAL_CODE){
+      overlay.style.display='none'; submit.removeEventListener('click',handler);
+      launchStudentView(frontier,chap); return;
+    }
+    if(isNew){
+      if(inp2.value.trim()!==val){ err.textContent='Codes don\'t match — try again.'; return; }
+      localStorage.setItem(chapCodeKey(fid,catId,chap),val);
+      overlay.style.display='none'; submit.removeEventListener('click',handler);
+      launchStudentView(frontier,chap);
+    } else {
+      if(val!==existing){ err.textContent='Incorrect code.'; inp.value=''; inp.focus(); return; }
+      overlay.style.display='none'; submit.removeEventListener('click',handler);
+      launchStudentView(frontier,chap);
+    }
+  };
+  submit.addEventListener('click',handler);
+  [inp,inp2].forEach(el=>el.addEventListener('keydown',e=>{ if(e.key==='Enter') handler(); },{once:false}));
+
+  document.getElementById('ac-reset-link').onclick=()=>{
+    const mk=prompt('Enter MasterKey to reset the access code for '+chap+'.\n\nDon\'t know the key? Ask your Discovery Group Process Leader.');
+    if(!mk) return;
+    if(mk.trim()!==MASTER_RESET_KEY){ alert('Incorrect MasterKey.'); return; }
+    localStorage.removeItem(chapCodeKey(fid,catId,chap));
+    err.textContent='';
+    document.getElementById('ac-title').textContent='Create New Access Code';
+    document.getElementById('ac-desc').textContent='Old code cleared. Set a new access code for '+chap+'.';
+    inp2.style.display='block';
+    inp.value=''; inp2.value=''; inp.focus();
+  };
+}
+
+function launchStudentView(frontier,chap){
+  document.getElementById('entry-screen').style.display='none';
+  document.getElementById('stu-school-badge').textContent=frontier.shortName;
+  document.getElementById('stu-chap-label').textContent=chap;
+  document.getElementById('student-view').classList.add('open');
+  renderStudentChapter();
+}
+
+function goHome(){
+  MODE=null; ACTIVE_FID=null; ACTIVE_FRONTIER=null; ACTIVE_CATEGORIES=[];
+  STU_FID=null; STU_CAT_ID=null; STU_CHAP=null;
+  document.getElementById('entry-screen').style.display='flex';
+  document.getElementById('topbar').style.display='none';
+  document.getElementById('main').style.display='none';
+  document.getElementById('board-view').classList.remove('open');
+  document.getElementById('student-view').classList.remove('open');
+}
+
+// ===== ENTRY SCREEN LOGIC =====
+const stuSchoolEl = document.getElementById('stu-school');
+const stuChapEl   = document.getElementById('stu-chapter');
+const stuEnterBtn = document.getElementById('stu-enter');
+
+stuSchoolEl.addEventListener('change',()=>{
+  const fid=stuSchoolEl.value;
+  stuChapEl.innerHTML='<option value="">Organization...</option>';
+  stuChapEl.disabled=!fid;
+  stuEnterBtn.disabled=true;
+  if(!fid) return;
+  const frontier=FRONTIERS.find(f=>f.id===fid);
+  if(!frontier) return;
+  const all=[];
+  frontier.categories.forEach(cat=>{
+    allChaptersFor(fid,cat).forEach(c=> all.push({catId:cat.id, chap:c}));
+  });
+  all.sort((a,b)=>a.chap.localeCompare(b.chap)).forEach(({catId,chap})=>{
+    const opt=document.createElement('option');
+    opt.value=catId+'|'+chap;
+    opt.textContent=chap;
+    stuChapEl.appendChild(opt);
+  });
+  stuChapEl.disabled=false;
+});
+
+stuChapEl.addEventListener('change',()=>{
+  stuEnterBtn.disabled=!stuChapEl.value;
+  document.getElementById('stu-error').style.display='none';
+});
+
+stuEnterBtn.addEventListener('click',()=>{
+  const fid=stuSchoolEl.value;
+  const val=stuChapEl.value;
+  if(!fid||!val){ document.getElementById('stu-error').style.display='block'; return; }
+  const [catId,chap]=val.split('|');
+  enterStudent(fid,catId,chap);
+});
+
+document.getElementById('staff-enter').addEventListener('click',()=>{
+  const code=document.getElementById('staff-code').value.trim();
+  document.getElementById('staff-error').style.display='none';
+  if(code===MASTER_CODE){ enterMaster(); return; }
+  const frontier=FRONTIERS.find(f=>f.adminCode===code);
+  if(frontier){ document.getElementById('staff-code').value=''; enterAdmin(frontier); return; }
+  document.getElementById('staff-error').style.display='block';
+  document.getElementById('staff-code').value='';
+});
+
+document.getElementById('staff-code').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('staff-enter').click(); });
+document.getElementById('logout-btn').addEventListener('click',goHome);
+document.getElementById('home-btn').addEventListener('click',()=>{
+  if(MODE==='admin'){
+    activeKey=null;
+    document.getElementById('empty').style.display='block';
+    document.getElementById('chapter-panel').style.display='none';
+    renderDashboard();
+    buildSidebar(document.getElementById('search').value);
+  } else { goHome(); }
+});
+document.getElementById('stu-home').addEventListener('click',goHome);
+
+
+// ===== ADMIN TRACKER =====
+let activeKey=null, openCats={};
+
+function hasNotes(catId,chap){ const d=load(catId,chap); return !!(d.notes&&d.notes.trim()); }
+function hasPod(catId,chap){ const d=load(catId,chap); return (d.students||[]).some(s=>s.status==='pod'); }
+function hasGrowth(catId,chap){ const d=load(catId,chap); return (d.students||[]).some(s=>s.status==='growth'); }
+
+function buildSidebar(filter=''){
+  const sb=document.getElementById('sidebar'); sb.innerHTML='';
+  let total=0;
+  ACTIVE_CATEGORIES.forEach(cat=>{
+    const chapters=allChapters(cat).filter(c=>!filter||c.toLowerCase().includes(filter.toLowerCase()));
+    total+=allChapters(cat).length;
+    if(filter&&chapters.length===0) return;
+
+    const wrap=document.createElement('div'); wrap.className=`cat-wrap ${cat.cls}`;
+    const hdr=document.createElement('div');
+    hdr.className='cat-header'+(openCats[cat.id]||filter?' open':'');
+    hdr.innerHTML=`<span>${cat.label}</span><span class="badge">${allChapters(cat).length}</span><span class="arrow">▶</span>`;
+    hdr.addEventListener('click',()=>{ openCats[cat.id]=!openCats[cat.id]; buildSidebar(document.getElementById('search').value); });
+
+    const body=document.createElement('div');
+    body.className='cat-body'+(openCats[cat.id]||filter?' open':'');
+
+    const sorted=[...chapters].sort((a,b)=>a.localeCompare(b));
+    const grpBoth=sorted.filter(c=>{ const d=load(cat.id,c); return d.hasDG&&d.hasWAM; });
+    const grpDG  =sorted.filter(c=>{ const d=load(cat.id,c); return d.hasDG&&!d.hasWAM; });
+    const grpNone=sorted.filter(c=>{ const d=load(cat.id,c); return !d.hasDG; });
+
+    function makeSubSection(label,list,color){
+      if(!list.length) return;
+      const hd=document.createElement('div');
+      hd.style.cssText=`padding:6px 14px 3px;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${color};border-top:1px solid #f0f2f9;margin-top:4px;`;
+      hd.textContent=label; body.appendChild(hd);
+      list.forEach(chap=>addChapterRow(chap));
+    }
+
+    function addChapterRow(chap){
+      const row=document.createElement('div');
+      const key=cat.id+'__'+chap;
+      const notes=hasNotes(cat.id,chap), pod=hasPod(cat.id,chap), growth=hasGrowth(cat.id,chap);
+      row.className='chapter-row'+(activeKey===key?' active':'')+(pod?' has-pod':growth?' has-growth':notes?' has-notes':'');
+      const d=load(cat.id,chap);
+      let badges='';
+      if(ACTIVE_FRONTIER&&ACTIVE_FRONTIER.id==='psu'){
+        const s=d.stage?PSU_IFC_STICKERS.find(x=>x.key===d.stage):null;
+        if(s) badges=`<span class="rbadge" style="background:${s.color}22;color:${s.color};">${s.label}</span>`;
+      } else {
+        if(d.hasDG) badges+=`<span class="rbadge rbadge-dg">DG</span>`;
+        if(d.hasWAM) badges+=`<span class="rbadge rbadge-wam">WAM</span>`;
+      }
+      row.innerHTML=`<span class="dot"></span><span class="row-name">${chap}</span><span class="row-badges">${badges}</span><button class="del-row" title="Remove">×</button>`;
+      row.querySelector('.row-name').addEventListener('click',()=>{ activeKey=key; openChapter(cat,chap); buildSidebar(document.getElementById('search').value); });
+      row.querySelector('.dot').addEventListener('click',()=>{ activeKey=key; openChapter(cat,chap); buildSidebar(document.getElementById('search').value); });
+      row.querySelector('.del-row').addEventListener('click',e=>{
+        e.stopPropagation();
+        removeChapter(cat.id,chap);
+        if(activeKey===key){ activeKey=null; document.getElementById('empty').style.display='flex'; document.getElementById('chapter-panel').style.display='none'; }
+        buildSidebar(document.getElementById('search').value);
+      });
+      body.appendChild(row);
+    }
+
+    if(filter){ chapters.sort((a,b)=>a.localeCompare(b)).forEach(addChapterRow); }
+    else if(ACTIVE_FRONTIER&&ACTIVE_FRONTIER.id==='psu'&&cat.id!=='oth'){
+      PSU_IFC_STICKERS.forEach(s=>{
+        const list=sorted.filter(c=>{ const d=load(cat.id,c); return d.stage===s.key; });
+        makeSubSection(s.label, list, s.color);
+      });
+      const unstaged=sorted.filter(c=>{ const d=load(cat.id,c); return !d.stage; });
+      makeSubSection('No Stage', unstaged, '#b0b8d4');
+    }
+    else if(cat.id==='oth'){
+      OTHER_SUB_CATS.forEach(sub=>{
+        const list=sorted.filter(sub.test);
+        makeSubSection(sub.label,list,sub.color);
+      });
+      const caught=new Set(OTHER_SUB_CATS.flatMap(sub=>sorted.filter(sub.test)));
+      const misc=sorted.filter(c=>!caught.has(c));
+      if(misc.length) makeSubSection('Other',misc,'#b0b8d4');
+    }
+    else { makeSubSection('DG + WAM',grpBoth,'#00897b'); makeSubSection('Discovery Group',grpDG,'#7986cb'); makeSubSection('No Group',grpNone,'#b0b8d4'); }
+
+    const _t=ACTIVE_FRONTIER&&ACTIVE_FRONTIER.term||{s:'chapter',p:'chapters'};
+    const addRow=document.createElement('div'); addRow.className='add-chapter'; addRow.innerHTML='+ Add '+_t.s;
+    const addForm=document.createElement('div'); addForm.className='add-chapter-form'; addForm.style.display='none';
+    addForm.innerHTML=`<input type="text" placeholder="${_t.s[0].toUpperCase()+_t.s.slice(1)} name…"><button class="confirm">Add</button><button class="cancel">✕</button>`;
+    const inp=addForm.querySelector('input');
+    addForm.querySelector('.confirm').addEventListener('click',()=>{
+      const name=inp.value.trim(); if(name){ addChapter(cat.id,name); inp.value=''; addForm.style.display='none'; addRow.style.display='flex'; openCats[cat.id]=true; buildSidebar(); }
+    });
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter') addForm.querySelector('.confirm').click(); if(e.key==='Escape'){ addForm.style.display='none'; addRow.style.display='flex'; } });
+    addForm.querySelector('.cancel').addEventListener('click',()=>{ addForm.style.display='none'; addRow.style.display='flex'; inp.value=''; });
+    addRow.addEventListener('click',()=>{ addRow.style.display='none'; addForm.style.display='flex'; setTimeout(()=>inp.focus(),30); });
+
+    body.appendChild(addRow); body.appendChild(addForm);
+    wrap.appendChild(hdr); wrap.appendChild(body);
+    sb.appendChild(wrap);
+  });
+  document.getElementById('total-count').textContent=`${total} orgs`;
+}
+
+function fmt(ts){ if(!ts)return ''; const d=new Date(ts); return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
+
+function openChapter(cat,chap){
+  document.getElementById('empty').style.display='none';
+  document.getElementById('chapter-panel').style.display='block';
+  renderPanel(cat,chap);
+}
+
+function renderPanel(cat,chap){
+  const data=load(cat.id,chap);
+  const color=CAT_COLORS[cat.id]||'#7986cb';
+  const panel=document.getElementById('chapter-panel');
+  const leaders=data.leaders||[];
+  const students=data.students||[];
+  const notes=data.notes||'';
+  const updated=data._updated;
+
+  panel.innerHTML=`
+    <div class="panel-header">
+      <div class="panel-title">
+        <h2>${chap}</h2>
+        <div class="meta">${cat.label} · ${ACTIVE_FRONTIER.name}</div>
+      </div>
+      <span class="panel-cat-badge" style="background:${color}22;color:${color};">${cat.label.split(' ')[0].toUpperCase()}</span>
+      <button id="clear-org-btn" style="background:none;border:1px solid #ffc8c8;border-radius:6px;padding:4px 10px;color:#ef5350;font-size:11px;cursor:pointer;">Clear</button>
+    </div>
+    ${ACTIVE_FRONTIER.id==='psu'
+      ? (()=>{
+          const cur=data.stage||'';
+          const opts=PSU_IFC_STICKERS.map(s=>`<option value="${s.key}"${cur===s.key?' selected':''}>${s.label}</option>`).join('');
+          const sel=cur?PSU_IFC_STICKERS.find(s=>s.key===cur):null;
+          return `<div class="status-toggle">
+            <select id="stage-sel" style="font-size:12px;font-weight:700;padding:6px 12px;border-radius:8px;border:2px solid ${sel?sel.color:'#dde1ee'};color:${sel?sel.color:'#9099b8'};background:${sel?sel.color+'18':'#fafafa'};outline:none;cursor:pointer;">
+              <option value="">— Select Stage —</option>${opts}
+            </select>
+          </div>`;
+        })()
+      : `<div class="status-toggle">
+          <div class="tog ${data.hasDG?'on-dg':''}" id="tog-dg"><span class="tog-dot"></span>Discovery Group in House</div>
+          <div class="tog ${data.hasWAM?'on-wam':''}" id="tog-wam"><span class="tog-dot"></span>WAM Group</div>
+        </div>`
+    }
+    <div class="coach-row">
+      <span class="coach-label">Coach</span>
+      <input class="coach-inp" id="coach-inp" placeholder="Who is coaching this group?" value="${data.coach||''}">
+    </div>
+    <div class="section">
+      <div class="section-label">${ACTIVE_FRONTIER.id==='alumni'?'Point People':'Student Leaders'}</div>
+      <div class="leaders-list" id="leaders-list"></div>
+      <button class="add-btn" id="add-leader-btn">+ Add ${ACTIVE_FRONTIER.id==='alumni'?'person':'leader'}</button>
+    </div>
+    <div class="section">
+      <div style="display:flex;align-items:center;margin-bottom:10px;">
+        <div class="section-label" style="margin-bottom:0;">${ACTIVE_FRONTIER.id==='alumni'?'Group':'Chapter'} Notes &amp; Next Steps</div>
+        <button id="save-notes-btn" style="margin-left:auto;background:#f0f2f9;border:1px solid #dde1ee;border-radius:6px;padding:4px 12px;color:#9099b8;font-size:11px;cursor:pointer;">✓ Save</button>
+      </div>
+      <textarea id="notes-area" placeholder="${ACTIVE_FRONTIER.id==='alumni'?"What's going on in this city? Who's involved, what are next steps, what's the vision…":"What's going on in this chapter? What are next steps? Who's leading, who's struggling, what's the feel of the group…"}">${notes}</textarea>
+      <div class="last-saved" id="last-saved">${updated?'Last saved: '+fmt(updated):''}</div>
+    </div>
+    <div class="section">
+      <div class="section-label">${ACTIVE_FRONTIER.id==='alumni'?'Key People':'Key Students'}</div>
+      <div id="students-list"></div>
+      <button class="add-student-btn" id="add-student-btn">+ Add ${ACTIVE_FRONTIER.id==='alumni'?'person':'key student'}</button>
+    </div>
+    <div class="section">
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;">
+        <div class="section-label" style="margin-bottom:0;color:#5c6bc0;">Milestones</div>
+        <span style="font-size:10px;color:#b0b8d4;font-style:italic;">persists after Clear</span>
+      </div>
+      <div style="display:flex;gap:8px;padding:0 10px;margin-bottom:4px;">
+        <div style="flex:1;"></div>
+        <div class="ms-col-hdr" style="width:72px;">Bridge/App</div>
+        <div class="ms-col-hdr" style="width:72px;">Test. Wkshp</div>
+        <div class="ms-col-hdr" style="width:60px;">1 John</div>
+        <div style="width:18px;"></div>
+      </div>
+      <div id="milestones-list"></div>
+      <button class="add-milestone-btn" id="add-milestone-btn">+ Add student</button>
+    </div>`;
+
+  document.getElementById('clear-org-btn').addEventListener('click',()=>{
+    const btn=document.getElementById('clear-org-btn');
+    if(btn.dataset.confirming){
+      clearTimeout(btn._confirmTimer);
+      delete btn.dataset.confirming;
+      btn.textContent='Clear';
+      btn.style.border='1px solid #ffc8c8';
+      btn.style.color='#ef5350';
+      save(cat.id, chap, {});
+      renderPanel(cat, chap);
+      buildSidebar(document.getElementById('search').value);
+    } else {
+      btn.dataset.confirming='1';
+      btn.textContent='Confirm?';
+      btn.style.border='1px solid #ef5350';
+      btn.style.color='#ef5350';
+      btn._confirmTimer=setTimeout(()=>{
+        if(!btn) return;
+        delete btn.dataset.confirming;
+        btn.textContent='Clear';
+        btn.style.border='1px solid #ffc8c8';
+        btn.style.color='#ef5350';
+      }, 3000);
+    }
+  });
+
+  function withPasscode(cb){
+    const existing=document.getElementById('pc-box'); if(existing){ existing.remove(); return; }
+    const box=document.createElement('div'); box.id='pc-box';
+    box.style.cssText='display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #7986cb;border-radius:8px;padding:4px 8px;margin-left:8px;';
+    box.innerHTML=`<input id="pc-inp" type="password" placeholder="Passcode" style="border:none;outline:none;font-size:12px;width:90px;color:#1a1f36;background:transparent;">
+      <button id="pc-ok" style="background:#7986cb;border:none;border-radius:5px;padding:2px 8px;color:#fff;font-size:11px;cursor:pointer;">OK</button>
+      <button id="pc-cancel" style="background:none;border:none;color:#b0b8d4;font-size:13px;cursor:pointer;">✕</button>`;
+    (document.querySelector('.status-toggle')||document.querySelector('.sticker-row')||panel).appendChild(box);
+    const inp=document.getElementById('pc-inp'); inp.focus();
+    const attempt=()=>{ if(inp.value===PASSCODE){ box.remove(); cb(); } else{ inp.value=''; inp.style.borderBottom='1px solid #ef5350'; inp.placeholder='Wrong — try again'; } };
+    document.getElementById('pc-ok').addEventListener('click',attempt);
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter') attempt(); if(e.key==='Escape') box.remove(); });
+    document.getElementById('pc-cancel').addEventListener('click',()=>box.remove());
+  }
+
+  if(ACTIVE_FRONTIER.id==='psu'){
+    const stageSel=document.getElementById('stage-sel');
+    stageSel.addEventListener('change',()=>{
+      const k=stageSel.value;
+      data.stage=k;
+      const s=PSU_IFC_STICKERS.find(x=>x.key===k);
+      stageSel.style.borderColor=s?s.color:'#dde1ee';
+      stageSel.style.color=s?s.color:'#9099b8';
+      stageSel.style.background=s?s.color+'18':'#fafafa';
+      const stageOrder=['prayer','pop','launched','pod','wam','thinking','reproduced','coaching'];
+      const idx=stageOrder.indexOf(k);
+      data.hasDG=idx>=2;
+      data.hasWAM=idx>=4;
+      autosave();
+      buildSidebar(document.getElementById('search').value);
+    });
+  } else {
+    document.getElementById('tog-dg').addEventListener('click',function(){ data.hasDG=!data.hasDG; this.className='tog'+(data.hasDG?' on-dg':''); this.querySelector('.tog-dot').style.background=data.hasDG?'#7986cb':'#dde1ee'; autosave(); });
+    document.getElementById('tog-wam').addEventListener('click',function(){ data.hasWAM=!data.hasWAM; this.className='tog'+(data.hasWAM?' on-wam':''); this.querySelector('.tog-dot').style.background=data.hasWAM?'#00897b':'#dde1ee'; autosave(); });
+  }
+  document.getElementById('coach-inp').addEventListener('input',e=>{ data.coach=e.target.value; autosave(); });
+
+  function renderLeaders(){
+    const ll=document.getElementById('leaders-list'); ll.innerHTML='';
+    (data.leaders||[]).forEach((l,i)=>{
+      const row=document.createElement('div'); row.className='leader-row';
+      row.innerHTML=`<input class="leader-name" value="${l.name||''}" placeholder="Name" data-i="${i}">
+        <select class="leader-year" data-i="${i}">${['Year','Fr','So','Jr','Sr','Grad'].map(y=>`<option${l.year===y?' selected':''}>${y}</option>`).join('')}</select>
+        <select class="leader-role" data-i="${i}">${['President','VP','Treasurer','Secretary','Rush Chair','Social Chair','Member','Other'].map(r=>`<option${l.role===r?' selected':''}>${r}</option>`).join('')}</select>
+        <button class="leader-del" data-i="${i}">×</button>`;
+      ll.appendChild(row);
+    });
+    ll.querySelectorAll('.leader-name').forEach(inp=>{ inp.addEventListener('input',e=>{ data.leaders[+e.target.dataset.i].name=e.target.value; autosave(); }); });
+    ll.querySelectorAll('.leader-role').forEach(sel=>{ sel.addEventListener('change',e=>{ data.leaders[+e.target.dataset.i].role=e.target.value; autosave(); }); });
+    ll.querySelectorAll('.leader-year').forEach(sel=>{ sel.addEventListener('change',e=>{ data.leaders[+e.target.dataset.i].year=e.target.value; autosave(); }); });
+    ll.querySelectorAll('.leader-del').forEach(btn=>{ btn.addEventListener('click',e=>{ data.leaders.splice(+e.target.dataset.i,1); renderLeaders(); autosave(); }); });
+  }
+  data.leaders=leaders; renderLeaders();
+
+  document.getElementById('add-leader-btn').addEventListener('click',()=>{
+    data.leaders.push({name:'',role:'Member'}); renderLeaders(); autosave();
+    setTimeout(()=>document.querySelector('.leaders-list .leader-name:last-of-type')?.focus(),50);
+  });
+
+  const notesEl=document.getElementById('notes-area');
+  const saveNotesBtn=document.getElementById('save-notes-btn');
+  let saveTimer;
+  notesEl.addEventListener('input',()=>{ data.notes=notesEl.value; clearTimeout(saveTimer); saveTimer=setTimeout(()=>autosave(),600); });
+  saveNotesBtn.addEventListener('click',()=>{
+    data.notes=notesEl.value; autosave();
+    saveNotesBtn.textContent='✓ Saved'; saveNotesBtn.style.color='#00897b'; saveNotesBtn.style.borderColor='#00897b';
+    setTimeout(()=>{ saveNotesBtn.textContent='✓ Save'; saveNotesBtn.style.color='#9099b8'; saveNotesBtn.style.borderColor='#dde1ee'; },2000);
+  });
+
+  data.students=students;
+  function renderStudents(){
+    const sl=document.getElementById('students-list'); sl.innerHTML='';
+    (data.students||[]).forEach((s,i)=>{
+      const card=document.createElement('div'); card.className='student-card';
+      const statusOpts=[{v:'pod',l:'Point of Decision',cls:'status-pod'},{v:'growth',l:'Steps of Growth',cls:'status-growth'},{v:'watching',l:'Watching',cls:'status-watching'}];
+      const cur=statusOpts.find(o=>o.v===s.status)||statusOpts[2];
+      const isPod=s.status==='pod';
+      card.innerHTML=`<div class="student-top">
+        <input class="student-name-inp" value="${s.name||''}" placeholder="${ACTIVE_FRONTIER.id==='alumni'?'Person name':'Student name'}" data-i="${i}">
+        <select class="student-status ${cur.cls}" data-i="${i}">${statusOpts.map(o=>`<option value="${o.v}"${s.status===o.v?' selected':''}>${o.l}</option>`).join('')}</select>
+        <button class="student-del-btn" data-i="${i}">×</button>
+      </div>
+      <textarea class="student-note" rows="2" placeholder="General notes…" data-i="${i}">${s.note||''}</textarea>
+      <div class="pod-note-row${isPod?' visible':''}" data-i="${i}">
+        <textarea class="pod-note-inp" rows="2" placeholder="What decision are they facing? Where are they at spiritually?" data-i="${i}">${s.podNote||''}</textarea>
+      </div>`;
+      sl.appendChild(card);
+    });
+    sl.querySelectorAll('.student-name-inp').forEach(inp=>inp.addEventListener('input',e=>{ data.students[+e.target.dataset.i].name=e.target.value; autosave(); }));
+    sl.querySelectorAll('.student-status').forEach(sel=>{
+      sel.addEventListener('change',e=>{
+        const i=+e.target.dataset.i; data.students[i].status=e.target.value;
+        sel.className='student-status '+[{v:'pod',cls:'status-pod'},{v:'growth',cls:'status-growth'},{v:'watching',cls:'status-watching'}].find(o=>o.v===e.target.value).cls;
+        const podRow=sl.querySelectorAll('.pod-note-row')[i];
+        podRow.classList.toggle('visible', e.target.value==='pod');
+        autosave(); buildSidebar(document.getElementById('search').value);
+      });
+    });
+    sl.querySelectorAll('.student-note').forEach(ta=>ta.addEventListener('input',e=>{ data.students[+e.target.dataset.i].note=e.target.value; autosave(); }));
+    sl.querySelectorAll('.pod-note-inp').forEach(ta=>ta.addEventListener('input',e=>{ data.students[+e.target.dataset.i].podNote=e.target.value; autosave(); }));
+    sl.querySelectorAll('.student-del-btn').forEach(btn=>btn.addEventListener('click',e=>{ data.students.splice(+e.target.dataset.i,1); renderStudents(); autosave(); buildSidebar(document.getElementById('search').value); }));
+  }
+  renderStudents();
+
+  document.getElementById('add-student-btn').addEventListener('click',()=>{
+    data.students.push({name:'',status:'watching',note:''}); renderStudents(); autosave();
+    setTimeout(()=>{ const ins=document.querySelectorAll('.student-name-inp'); ins[ins.length-1]?.focus(); },50);
+  });
+
+  const msData=loadMilestones(cat.id,chap);
+  const msStudents=msData.students||[];
+
+  function renderMilestones(){
+    const ml=document.getElementById('milestones-list'); ml.innerHTML='';
+    msStudents.forEach((s,i)=>{
+      const card=document.createElement('div'); card.className='milestone-card';
+      const bridgeOpts=['—','1x','2x','3x'].map(v=>`<option${s.bridge===v?' selected':''}>${v}</option>`).join('');
+      card.innerHTML=`
+        <input class="ms-name" value="${s.name||''}" placeholder="${ACTIVE_FRONTIER.id==='alumni'?'Person name':'Student name'}" data-i="${i}">
+        <select class="ms-sel ms-bridge" data-i="${i}" title="Bridge/App">${bridgeOpts}</select>
+        <button class="ms-pill ms-tw${s.tw==='Done'?' on':''}" data-i="${i}" title="Testimony Workshop">Testimony Wkshp</button>
+        <button class="ms-pill ms-john${s.john==='Done'?' on':''}" data-i="${i}" title="Assurance (1 John)">1 John</button>
+        <button class="ms-del" data-i="${i}">×</button>`;
+      ml.appendChild(card);
+    });
+    ml.querySelectorAll('.ms-name').forEach(inp=>inp.addEventListener('input',e=>{ msStudents[+e.target.dataset.i].name=e.target.value; saveMilestones(cat.id,chap,{students:msStudents}); }));
+    ml.querySelectorAll('.ms-bridge').forEach(sel=>sel.addEventListener('change',e=>{ msStudents[+e.target.dataset.i].bridge=e.target.value; saveMilestones(cat.id,chap,{students:msStudents}); }));
+    ml.querySelectorAll('.ms-tw').forEach(btn=>btn.addEventListener('click',e=>{ const i=+e.target.dataset.i; msStudents[i].tw=msStudents[i].tw==='Done'?'—':'Done'; e.target.classList.toggle('on',msStudents[i].tw==='Done'); saveMilestones(cat.id,chap,{students:msStudents}); }));
+    ml.querySelectorAll('.ms-john').forEach(btn=>btn.addEventListener('click',e=>{ const i=+e.target.dataset.i; msStudents[i].john=msStudents[i].john==='Done'?'—':'Done'; e.target.classList.toggle('on',msStudents[i].john==='Done'); saveMilestones(cat.id,chap,{students:msStudents}); }));
+    ml.querySelectorAll('.ms-del').forEach(btn=>btn.addEventListener('click',e=>{ msStudents.splice(+e.target.dataset.i,1); renderMilestones(); saveMilestones(cat.id,chap,{students:msStudents}); }));
+  }
+  renderMilestones();
+
+  document.getElementById('add-milestone-btn').addEventListener('click',()=>{
+    msStudents.push({name:'',bridge:'—',tw:'—',john:'—'});
+    renderMilestones();
+    setTimeout(()=>{ const ins=document.querySelectorAll('.ms-name'); ins[ins.length-1]?.focus(); },50);
+  });
+
+  function autosave(){
+    save(cat.id,chap,data);
+    const ls=document.getElementById('last-saved'); if(ls) ls.textContent='Last saved: '+fmt(Date.now());
+    buildSidebar(document.getElementById('search').value);
+  }
+}
+
+// ===== WEEKLY RECAP =====
+document.getElementById('recap-btn').addEventListener('click',()=>{
+  const date=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  const frontier=ACTIVE_FRONTIER;
+  const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // Stats (no double counting)
+  const {total,both,dgOnly,nothing,pod,growth}=collectStats(null,ACTIVE_CATEGORIES,load);
+
+  // Category bars for page 1
+  function recapCatBar(cat){
+    const chaps=allChapters(cat);
+    let b=0,dg=0,none=0;
+    chaps.forEach(chap=>{ const d=load(cat.id,chap); if(d.hasDG&&d.hasWAM) b++; else if(d.hasDG) dg++; else none++; });
+    const tot=chaps.length||1;
+    const pB=Math.round(b/tot*100), pD=Math.round(dg/tot*100), pN=100-pB-pD;
+    return `<div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+        <span style="font-size:11px;font-weight:700;color:#1a1f36;">${esc(cat.label)}</span>
+        <span style="font-size:10px;color:#9099b8;">${chaps.length} orgs</span>
+      </div>
+      <div style="display:flex;border-radius:4px;overflow:hidden;height:12px;background:#f0f2f9;">
+        <div style="width:${pB}%;background:#00897b;"></div>
+        <div style="width:${pD}%;background:#7986cb;"></div>
+        <div style="width:${pN}%;background:#e8eaf5;"></div>
+      </div>
+      <div style="display:flex;gap:14px;font-size:9px;color:#6b75a0;margin-top:4px;">
+        <span>●<span style="color:#00897b;"> DG+WAM: <strong>${b}</strong></span></span>
+        <span>●<span style="color:#7986cb;"> DG only: <strong>${dg}</strong></span></span>
+        <span style="color:#b0b8d4;">● Not started: <strong style="color:#555;">${none}</strong></span>
+      </div>
+    </div>`;
+  }
+  const catBarsHtml=ACTIVE_CATEGORIES.map(recapCatBar).join('');
+
+  // Collect chapters with data, group by coach
+  const chapsByCoach={};
+  ACTIVE_CATEGORIES.forEach(cat=>{
+    allChapters(cat).sort((a,b)=>a.localeCompare(b)).forEach(chap=>{
+      const d=load(cat.id,chap);
+      if(!d.hasDG&&!d.hasWAM&&!(d.notes&&d.notes.trim())&&!(d.students||[]).filter(s=>s.name).length&&!(d.leaders||[]).filter(l=>l.name).length) return;
+      const coach=(d.coach&&d.coach.trim())||'Unassigned';
+      if(!chapsByCoach[coach]) chapsByCoach[coach]=[];
+      chapsByCoach[coach].push({cat,chap,d});
+    });
+  });
+
+  function makeRecapCard({cat,chap,d}){
+    const statusColor=(d.hasDG&&d.hasWAM)?'#00897b':d.hasDG?'#7986cb':'#9099b8';
+    const status=(d.hasDG&&d.hasWAM)?'DG+WAM':d.hasDG?'DG only':'';
+    const leaders=(d.leaders||[]).filter(l=>l.name).map(l=>l.name).join(', ');
+    const notesRaw=(d.notes||'').trim();
+    const notes=notesRaw?`<div style="font-size:10px;color:#333;line-height:1.55;border-left:2px solid #e0e4f5;padding-left:7px;margin:5px 0;white-space:pre-wrap;">${esc(notesRaw)}</div>`:'';
+    const stus=(d.students||[]).filter(s=>s.name);
+    const stuRows=stus.map(s=>{
+      const color=s.status==='pod'?'#ef5350':s.status==='growth'?'#00897b':'#7986cb';
+      const label=s.status==='pod'?'POD':s.status==='growth'?'Growth':'Watching';
+      const podNote=s.status==='pod'&&s.podNote?` — <em style="color:#c62828;">${esc(s.podNote.slice(0,80))}</em>`:'';
+      return `<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:2px;">
+        <span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;background:${color}18;color:${color};white-space:nowrap;">${label}</span>
+        <span style="font-size:10px;color:#1a1f36;font-weight:600;">${esc(s.name)}${podNote}</span>
+      </div>`;
+    }).join('');
+    return `<div style="background:#fff;border:1px solid #e0e4f5;border-radius:8px;padding:10px 12px;break-inside:avoid;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:${leaders||notes||stuRows?'6px':'0'};padding-bottom:${leaders||notes||stuRows?'6px':'0'};border-bottom:${leaders||notes||stuRows?'1px solid #f0f2f9':'none'};">
+        <span style="font-size:12px;font-weight:800;color:#1a1f36;flex:1;">${esc(chap)}</span>
+        ${status?`<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:6px;background:${statusColor}15;color:${statusColor};">${status}</span>`:''}
+      </div>
+      ${leaders?`<div style="font-size:10px;color:#666;margin-bottom:4px;">Leaders: <strong style="color:#333;">${esc(leaders)}</strong></div>`:''}
+      ${notes}
+      ${stuRows?`<div style="margin-top:5px;">${stuRows}</div>`:''}
+    </div>`;
+  }
+
+  const coachSections=Object.keys(chapsByCoach).sort((a,b)=>a==='Unassigned'?1:b==='Unassigned'?-1:a.localeCompare(b)).map(coach=>{
+    const cards=chapsByCoach[coach].map(makeRecapCard).join('');
+    return `<div style="page-break-before:always;padding-top:8px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #1a1f36;">
+        <div style="font-size:14px;font-weight:800;color:#1a1f36;">${esc(coach)}</div>
+        <div style="font-size:10px;color:#9099b8;">${chapsByCoach[coach].length} ${(frontier.term||{s:'chapter',p:'chapters'})[chapsByCoach[coach].length>1?'p':'s']} · ${esc(frontier.name)}</div>
+        <div style="margin-left:auto;font-size:10px;color:#9099b8;">${date}</div>
+      </div>
+      <div style="column-count:2;column-gap:12px;">${cards}</div>
+    </div>`;
+  }).join('');
+
+  const html=`<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Weekly Recap — ${esc(frontier.name)} — ${date}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#fff;padding:20px 24px;color:#1a1f36;}
+  @media print{body{padding:14px 18px;} .no-print{display:none;} @page{margin:.8cm;size:A4;}}
+</style>
+</head>
+<body>
+  <!-- PAGE 1: STATS -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #1a1f36;">
+    <div>
+      <div style="font-size:18px;font-weight:800;color:#1a1f36;letter-spacing:-.01em;">${esc(frontier.name)} — Weekly Recap</div>
+      <div style="font-size:11px;color:#9099b8;margin-top:2px;">${date}</div>
+    </div>
+    <button class="no-print" onclick="window.print()" style="background:#1a1f36;border:none;border-radius:6px;padding:6px 16px;color:#fff;font-size:11px;font-weight:600;cursor:pointer;">Print / Save PDF</button>
+  </div>
+
+  <div style="display:flex;gap:10px;margin-bottom:18px;">
+    ${[['Total Orgs',total,'#1a1f36'],['DG + WAM',both,'#00897b'],['DG Only',dgOnly,'#7986cb'],['Not Started',nothing,'#b0b8d4'],['Pt. of Decision',pod,'#ef5350'],['Steps of Growth',growth,'#26a69a']].map(([label,num,color])=>`
+    <div style="flex:1;text-align:center;background:#f8f9ff;border:1px solid #e8eaf5;border-radius:8px;padding:10px 6px;">
+      <div style="font-size:22px;font-weight:800;color:${color};line-height:1;">${num}</div>
+      <div style="font-size:9px;font-weight:600;color:#9099b8;margin-top:3px;letter-spacing:.04em;text-transform:uppercase;">${label}</div>
+    </div>`).join('')}
+  </div>
+
+  <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9099b8;margin-bottom:10px;">By Category</div>
+  <div style="background:#f8f9ff;border:1px solid #e8eaf5;border-radius:8px;padding:14px 16px;">${catBarsHtml}</div>
+
+  <!-- PAGE 2+: CHAPTERS BY COACH -->
+  ${coachSections||'<p style="color:#b0b8d4;font-style:italic;margin-top:20px;">No chapters with data yet.</p>'}
+</body></html>`;
+
+  const a=document.createElement('a');
+  a.href='data:text/html;charset=utf-8,'+encodeURIComponent(html);
+  a.download='weekly-recap-'+new Date().toISOString().slice(0,10)+'.html';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+});
+
+// ===== EXPORT / IMPORT / UNDO =====
+document.getElementById('export-btn').addEventListener('click',()=>{
+  let html=document.documentElement.outerHTML;
+  html=html.replace(/\/\*SAVED_DB_START\*\/[\s\S]*?\/\*SAVED_DB_END\*\//,'/*SAVED_DB_START*/'+JSON.stringify(_db)+'/*SAVED_DB_END*/');
+  html=html.replace(/\/\*SAVED_REMOVED_START\*\/[\s\S]*?\/\*SAVED_REMOVED_END\*\//,'/*SAVED_REMOVED_START*/'+JSON.stringify(_removed)+'/*SAVED_REMOVED_END*/');
+  html=html.replace(/\/\*SAVED_CUSTOM_START\*\/[\s\S]*?\/\*SAVED_CUSTOM_END\*\//,'/*SAVED_CUSTOM_START*/'+JSON.stringify(_custom)+'/*SAVED_CUSTOM_END*/');
+  const a=document.createElement('a');
+  a.setAttribute('href','data:text/html;charset=utf-8,'+encodeURIComponent('<!DOCTYPE html>\n'+html));
+  a.setAttribute('download','dg-tracker-'+new Date().toISOString().slice(0,10)+'.html');
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+});
+
+document.getElementById('import-inp').addEventListener('change',e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const raw=ev.target.result;
+      // Handle exported HTML files (data baked in as JS comments)
+      const dbMatch=raw.match(/\/\*SAVED_DB_START\*\/([\s\S]*?)\/\*SAVED_DB_END\*\//);
+      if(dbMatch){
+        const db=JSON.parse(dbMatch[1]);
+        Object.assign(_db,db);
+        const remMatch=raw.match(/\/\*SAVED_REMOVED_START\*\/([\s\S]*?)\/\*SAVED_REMOVED_END\*\//);
+        const cusMatch=raw.match(/\/\*SAVED_CUSTOM_START\*\/([\s\S]*?)\/\*SAVED_CUSTOM_END\*\//);
+        if(remMatch) Object.assign(_removed,JSON.parse(remMatch[1]));
+        if(cusMatch) Object.assign(_custom,JSON.parse(cusMatch[1]));
+      } else {
+        // Handle plain JSON
+        const parsed=JSON.parse(raw);
+        if(parsed.db) Object.assign(_db,parsed.db);
+        if(parsed.removed) Object.assign(_removed,parsed.removed);
+        if(parsed.custom) Object.assign(_custom,parsed.custom);
+      }
+      _persist(); persistChapters();
+      activeKey=null;
+      document.getElementById('empty').style.display='block';
+      document.getElementById('chapter-panel').style.display='none';
+      renderDashboard();
+      buildSidebar();
+    }catch(err){ alert('Could not read file. Make sure it\'s an exported tracker HTML or JSON.'); }
+  };
+  reader.readAsText(file); e.target.value='';
+});
+
+document.getElementById('undo-btn').addEventListener('click',()=>{
+  if(!undoStack.length) return;
+  const prev=undoStack.pop();
+  if(prev.removed) _removed[ACTIVE_FID]=prev.removed;
+  if(prev.custom)  _custom[ACTIVE_FID]=prev.custom;
+  persistChapters(); buildSidebar(document.getElementById('search').value);
+});
+
+document.getElementById('search').addEventListener('input',e=>buildSidebar(e.target.value));
+
+// ===== BOARD VIEW (ADMIN) =====
+function hasData(catId,chap){ const d=load(catId,chap); return !!(d.notes&&d.notes.trim())||(d.leaders||[]).length>0||(d.students||[]).length>0; }
+function hasDataFor(fid,catId,chap){ const d=loadFor(fid,catId,chap); return !!(d.notes&&d.notes.trim())||(d.leaders||[]).length>0||(d.students||[]).length>0; }
+
+function makeCard(cat,chap){
+  const d=load(cat.id,chap);
+  const card=document.createElement('div'); card.className='board-card';
+
+  const dgB=d.hasDG?`<span class="rbadge rbadge-dg">DG</span>`:'';
+  const wamB=d.hasWAM?`<span class="rbadge rbadge-wam">WAM</span>`:'';
+
+  const leaderNames=(d.leaders||[]).filter(l=>l.name).map(l=>l.name).join(', ');
+  const notesSnippet=d.notes?d.notes.trim().slice(0,180)+(d.notes.length>180?'…':''):'';
+
+  const studentRows=(d.students||[]).filter(s=>s.name).map(s=>{
+    const badge=`<span class="st-badge" style="${STATUS_STYLE[s.status]||STATUS_STYLE.watching}">${STATUS_LABEL[s.status]||'Watching'}</span>`;
+    const podNote=(s.status==='pod'&&s.podNote)?`<div class="st-pod-note">${s.podNote.slice(0,120)}</div>`:'';
+    return `<div class="bc-student"><div class="bc-student-row">${badge}<span class="st-name">${s.name}</span></div>${podNote}</div>`;
+  }).join('');
+
+  card.innerHTML=`
+    <div class="bc-top">
+      <span class="bc-name">${chap}</span>
+      <span class="bc-badges">${dgB}${wamB}</span>
+    </div>
+    ${leaderNames?`<div class="bc-coach">${ACTIVE_FRONTIER.id==='alumni'?'Point People':'Student Leaders'}: <strong>${leaderNames}</strong></div>`:''}
+    ${notesSnippet||studentRows?'<div class="bc-divider"></div>':''}
+    ${notesSnippet?`<div class="bc-notes">${notesSnippet}</div>`:''}
+    ${studentRows?`<div class="bc-students">${studentRows}</div>`:''}`;
+
+  card.addEventListener('click',()=>{
+    document.getElementById('board-view').classList.remove('open');
+    activeKey=cat.id+'__'+chap; openChapter(cat,chap); buildSidebar();
+  });
+  return card;
+}
+
+function buildBoard(){
+  const bv=document.getElementById('board-view');
+  bv.querySelector('#board-cols').innerHTML=`
+    <div class="board-col col-both"><div class="board-col-hdr">DG + WAM <span class="col-count" id="cnt-both">0</span></div><div id="cards-both"></div></div>
+    <div class="board-col col-dg"><div class="board-col-hdr">Discovery Group <span class="col-count" id="cnt-dg">0</span></div><div id="cards-dg"></div></div>
+    <div class="board-col col-none"><div class="board-col-hdr">No Group <span class="col-count" id="cnt-none">0</span></div><div id="cards-none"></div></div>`;
+  document.getElementById('board-title').textContent='Weekly Board';
+
+  // Collect chapters into three buckets
+  const buckets={both:[],dg:[],none:[]};
+  ACTIVE_CATEGORIES.forEach(cat=>{
+    allChapters(cat).sort((a,b)=>a.localeCompare(b)).forEach(chap=>{
+      if(!hasData(cat.id,chap)) return;
+      const d=load(cat.id,chap);
+      const bucket=d.hasDG&&d.hasWAM?'both':d.hasDG?'dg':'none';
+      buckets[bucket].push({cat,chap,coach:(d.coach||'').trim()});
+    });
+  });
+
+  function renderBucket(items, container){
+    if(!items.length) return;
+    // Count coach occurrences
+    const coachCount={};
+    items.forEach(({coach})=>{ if(coach) coachCount[coach]=(coachCount[coach]||0)+1; });
+    const repeatCoaches=new Set(Object.keys(coachCount).filter(c=>coachCount[c]>1));
+
+    // Separate: grouped (repeat coach) vs solo
+    const grouped={};
+    const solo=[];
+    items.forEach(item=>{
+      if(item.coach && repeatCoaches.has(item.coach)){
+        if(!grouped[item.coach]) grouped[item.coach]=[];
+        grouped[item.coach].push(item);
+      } else { solo.push(item); }
+    });
+
+    // Render grouped first (alphabetical by coach name)
+    Object.keys(grouped).sort().forEach(coach=>{
+      const [fg,bg]=coachColor(coach);
+      const grpWrap=document.createElement('div');
+      grpWrap.style.cssText='margin-bottom:18px;';
+      const hdr=document.createElement('div');
+      hdr.style.cssText=`font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#1a1f36;background:${bg};border-left:3px solid ${fg};padding:5px 10px;border-radius:0 6px 6px 0;margin-bottom:8px;`;
+      hdr.textContent=coach;
+      grpWrap.appendChild(hdr);
+      grouped[coach].forEach(({cat,chap})=> grpWrap.appendChild(makeCard(cat,chap)));
+      container.appendChild(grpWrap);
+    });
+
+    // Render solo chapters after
+    solo.forEach(({cat,chap})=> container.appendChild(makeCard(cat,chap)));
+  }
+
+  renderBucket(buckets.both, document.getElementById('cards-both'));
+  renderBucket(buckets.dg,   document.getElementById('cards-dg'));
+  renderBucket(buckets.none, document.getElementById('cards-none'));
+
+  const cntBoth=buckets.both.length, cntDG=buckets.dg.length, cntNone=buckets.none.length;
+  const total=cntBoth+cntDG+cntNone;
+  if(!cntBoth) document.getElementById('cards-both').innerHTML='<div class="bc-empty">No chapters yet</div>';
+  if(!cntDG)   document.getElementById('cards-dg').innerHTML  ='<div class="bc-empty">No chapters yet</div>';
+  if(!cntNone) document.getElementById('cards-none').innerHTML ='<div class="bc-empty">No chapters yet</div>';
+  document.getElementById('cnt-both').textContent=cntBoth;
+  document.getElementById('cnt-dg').textContent=cntDG;
+  document.getElementById('cnt-none').textContent=cntNone;
+  const _bt=ACTIVE_FRONTIER&&ACTIVE_FRONTIER.term||{p:'chapters'};
+  document.getElementById('board-subtitle').textContent=`${total} ${_bt.p} with notes · ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`;
+}
+
+document.getElementById('board-btn').addEventListener('click',()=>{ buildBoard(); document.getElementById('board-view').classList.add('open'); });
+
+// ===== NOTES =====
+const NOTES_KEY = 'dgp__board_notes';
+function loadBoardNotes(){ try{ return JSON.parse(localStorage.getItem(NOTES_KEY)||'{}'); }catch(e){ return {}; } }
+function saveBoardNotes(notes){ localStorage.setItem(NOTES_KEY, JSON.stringify(notes)); }
+
+let _notesSaveTimer, _notesActivePage=null, _notesFid=null;
+
+function loadBoardPages(fid){ try{ return JSON.parse(localStorage.getItem('dgp__pages__'+fid)||'null'); }catch(e){ return null; } }
+function saveBoardPages(fid,pages){ localStorage.setItem('dgp__pages__'+fid, JSON.stringify(pages)); }
+
+function openNotesView(){
+  _notesFid = ACTIVE_FRONTIER ? ACTIVE_FRONTIER.id : '__general';
+  const fname = ACTIVE_FRONTIER ? ACTIVE_FRONTIER.name : 'General';
+  document.getElementById('notes-frontier-label').textContent = fname + ' — Notes';
+  document.getElementById('notes-saved-label').textContent = '';
+
+  let pages = loadBoardPages(_notesFid);
+  if(!pages || !pages.length){
+    pages = [{ id: Date.now()+'', title:'', body:'' }];
+    saveBoardPages(_notesFid, pages);
+  }
+
+  _notesActivePage = pages[0].id;
+  renderNotesSidebar(pages);
+  loadNotesPage(pages, _notesActivePage);
+  document.getElementById('notes-view').classList.add('open');
+}
+
+function renderNotesSidebar(pages){
+  const list = document.getElementById('notes-page-list');
+  list.innerHTML = '';
+  pages.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'notes-page-row' + (p.id===_notesActivePage?' active':'');
+    row.innerHTML = `<span class="npr-title">${p.title||'Untitled'}</span><button class="notes-del-btn" title="Delete page">×</button>`;
+    row.querySelector('.npr-title').addEventListener('click', ()=>{ saveCurrentNotesPage(); _notesActivePage=p.id; renderNotesSidebar(loadBoardPages(_notesFid)); loadNotesPage(loadBoardPages(_notesFid), p.id); });
+    row.querySelector('.notes-del-btn').addEventListener('click', e=>{ e.stopPropagation();
+      const pages = loadBoardPages(_notesFid)||[];
+      const idx = pages.findIndex(x=>x.id===p.id);
+      if(pages.length===1){ pages[0]={id:pages[0].id,title:'',body:''}; saveBoardPages(_notesFid,pages); _notesActivePage=pages[0].id; renderNotesSidebar(pages); loadNotesPage(pages,pages[0].id); return; }
+      pages.splice(idx,1);
+      saveBoardPages(_notesFid,pages);
+      if(_notesActivePage===p.id) _notesActivePage=pages[Math.min(idx,pages.length-1)].id;
+      renderNotesSidebar(pages); loadNotesPage(pages,_notesActivePage);
+    });
+    list.appendChild(row);
+  });
+}
+
+function loadNotesPage(pages, id){
+  const p = pages.find(x=>x.id===id);
+  if(!p) return;
+  clearTimeout(_notesSaveTimer);
+  const titleEl = document.getElementById('notes-page-title');
+  const bodyEl  = document.getElementById('notes-page-body');
+  titleEl.value = p.title||'';
+  bodyEl.innerHTML = p.body||'';
+  const onChange = ()=>{
+    clearTimeout(_notesSaveTimer);
+    _notesSaveTimer = setTimeout(()=>{ saveCurrentNotesPage(); }, 600);
+  };
+  titleEl.oninput = ()=>{ onChange(); renderNotesSidebar(loadBoardPages(_notesFid)); };
+  bodyEl.oninput  = onChange;
+  setTimeout(()=> bodyEl.focus(), 60);
+}
+
+function saveCurrentNotesPage(){
+  if(!_notesFid||!_notesActivePage) return;
+  const pages = loadBoardPages(_notesFid)||[];
+  const p = pages.find(x=>x.id===_notesActivePage);
+  if(!p) return;
+  p.title = document.getElementById('notes-page-title').value;
+  p.body  = document.getElementById('notes-page-body').innerHTML;
+  saveBoardPages(_notesFid, pages);
+  document.getElementById('notes-saved-label').textContent = 'Saved '+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+}
+
+document.querySelectorAll('.nt-btn').forEach(btn=>{
+  btn.addEventListener('mousedown', e=>{
+    e.preventDefault();
+    document.getElementById('notes-page-body').focus();
+    document.execCommand(btn.dataset.cmd, false, null);
+  });
+});
+
+document.getElementById('notes-page-body').addEventListener('keyup', updateToolbarState);
+document.getElementById('notes-page-body').addEventListener('mouseup', updateToolbarState);
+function updateToolbarState(){
+  ['bold','italic','underline','strikeThrough'].forEach(cmd=>{
+    const btn=document.querySelector(`.nt-btn[data-cmd="${cmd}"]`);
+    if(btn) btn.classList.toggle('active', document.queryCommandState(cmd));
+  });
+}
+
+document.getElementById('notes-new-btn').addEventListener('click',()=>{
+  saveCurrentNotesPage();
+  const pages = loadBoardPages(_notesFid)||[];
+  const newPage = { id: Date.now()+'', title:'', body:'' };
+  pages.push(newPage);
+  saveBoardPages(_notesFid, pages);
+  _notesActivePage = newPage.id;
+  renderNotesSidebar(pages);
+  loadNotesPage(pages, newPage.id);
+  document.getElementById('notes-page-title').focus();
+});
+
+document.getElementById('notes-btn').addEventListener('click', openNotesView);
+
+document.getElementById('board-notes-btn').addEventListener('click', ()=>{
+  saveCurrentNotesPage();
+  _notesFid = '__dgp';
+  document.getElementById('notes-frontier-label').textContent = 'All Frontiers — Notes';
+  document.getElementById('notes-saved-label').textContent = '';
+  let pages = loadBoardPages('__dgp');
+  if(!pages||!pages.length){ pages=[{id:Date.now()+'',title:'',body:''}]; saveBoardPages('__dgp',pages); }
+  _notesActivePage = pages[0].id;
+  renderNotesSidebar(pages);
+  loadNotesPage(pages, _notesActivePage);
+  document.getElementById('notes-view').classList.add('open');
+});
+document.getElementById('close-board').addEventListener('click',()=>{
+  document.getElementById('board-view').classList.remove('open');
+  if(MODE==='master') goHome();
+});
+
+// ===== MASTER BOARD =====
+function buildMasterBoard(){
+  const bv=document.getElementById('board-view');
+  bv.querySelector('#board-cols').innerHTML='';
+  const container=bv.querySelector('#board-cols');
+  document.getElementById('board-subtitle').textContent=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+
+  FRONTIERS.forEach(frontier=>{
+    const cats=frontier.categories;
+    let anyData=false;
+    cats.forEach(cat=>{
+      allChaptersFor(frontier.id,cat).forEach(chap=>{ if(hasDataFor(frontier.id,cat.id,chap)) anyData=true; });
+    });
+
+    const section=document.createElement('div'); section.className='frontier-section';
+    const hdr=document.createElement('div'); hdr.className='frontier-section-hdr';
+    hdr.innerHTML=`${frontier.name}<span class="frontier-badge">${frontier.shortName}</span>`;
+    section.appendChild(hdr);
+
+    const cols=document.createElement('div'); cols.className='frontier-cols';
+    const colBoth=document.createElement('div'); colBoth.className='board-col col-both';
+    colBoth.innerHTML='<div class="board-col-hdr">DG + WAM <span class="col-count">0</span></div>';
+    const colDG=document.createElement('div'); colDG.className='board-col col-dg';
+    colDG.innerHTML='<div class="board-col-hdr">Discovery Group <span class="col-count">0</span></div>';
+    const colNone=document.createElement('div'); colNone.className='board-col col-none';
+    colNone.innerHTML='<div class="board-col-hdr">No Group <span class="col-count">0</span></div>';
+
+    let cbCards=document.createElement('div'), cdCards=document.createElement('div'), cnCards=document.createElement('div');
+    colBoth.appendChild(cbCards); colDG.appendChild(cdCards); colNone.appendChild(cnCards);
+    let cntB=0,cntD=0,cntN=0;
+
+    cats.forEach(cat=>{
+      allChaptersFor(frontier.id,cat).sort((a,b)=>a.localeCompare(b)).forEach(chap=>{
+        if(!hasDataFor(frontier.id,cat.id,chap)) return;
+        const d=loadFor(frontier.id,cat.id,chap);
+        const card=document.createElement('div'); card.className='board-card';
+        const dgB=d.hasDG?`<span class="rbadge rbadge-dg">DG</span>`:'';
+        const wamB=d.hasWAM?`<span class="rbadge rbadge-wam">WAM</span>`:'';
+        const notesSnippet=d.notes?d.notes.trim().slice(0,120)+(d.notes.length>120?'…':''):'';
+        card.innerHTML=`<div class="bc-top"><span class="bc-name">${chap}</span><span class="bc-cat" style="${CAT_BADGE_STYLE[cat.id]||''}">${cat.label}</span><span class="bc-badges">${dgB}${wamB}</span></div>${notesSnippet?`<div class="bc-notes">${notesSnippet}</div>`:''}`;
+        if(d.hasDG&&d.hasWAM){ cbCards.appendChild(card); cntB++; }
+        else if(d.hasDG){ cdCards.appendChild(card); cntD++; }
+        else{ cnCards.appendChild(card); cntN++; }
+      });
+    });
+
+    if(!cntB) cbCards.innerHTML='<div class="bc-empty">None yet</div>';
+    if(!cntD) cdCards.innerHTML='<div class="bc-empty">None yet</div>';
+    if(!cntN) cnCards.innerHTML='<div class="bc-empty">None yet</div>';
+    colBoth.querySelector('.col-count').textContent=cntB;
+    colDG.querySelector('.col-count').textContent=cntD;
+    colNone.querySelector('.col-count').textContent=cntN;
+
+    cols.appendChild(colBoth); cols.appendChild(colDG); cols.appendChild(colNone);
+    section.appendChild(cols);
+    container.appendChild(section);
+  });
+}
+
+// ===== STUDENT VIEW =====
+const STU_ACTIONS=['Bridge','Knowing God App','Invite to DG','Invite to WAM','1:1','Other'];
+
+const YEAR_OPTS=['Freshman','Sophomore','Junior','Senior'];
+function rosterKey(){ return 'roster__'+STU_FID+'__'+STU_CAT_ID+'__'+STU_CHAP; }
+function loadRoster(){ try{ return JSON.parse(localStorage.getItem(rosterKey())||'null')||{semester:'',members:[]}; }catch(e){ return {semester:'',members:[]}; } }
+function saveRoster(r){ localStorage.setItem(rosterKey(),JSON.stringify(r)); }
+
+const BUCKET_DEFS = [
+  { key:'pray',       label:'Pray + Look for Open Doors', cls:'bucket-pray',
+    desc:'', actions:['Pray for','Invite to Discovery Group'] },
+  { key:'interested', label:'Interested', cls:'bucket-interested', desc:'',
+    actions:['Invite to Discovery Group','1:1','POD','Other'] },
+  { key:'consistent', label:'Consistent / Hungry', cls:'bucket-consistent', desc:'',
+    actions:['Needs POD','Invite to WAM','Invite to Church / Equipping Time'] },
+];
+
+function closeAllChipMenus(){ document.querySelectorAll('.pool-chip-menu').forEach(m=>m.remove()); }
+
+function renderRoster(){
+  const r=loadRoster();
+  document.getElementById('roster-semester').value=r.semester||'';
+
+  // Pool
+  const pool=document.getElementById('roster-pool'); pool.innerHTML='';
+  (r.members||[]).forEach((m,i)=>{
+    const chip=document.createElement('span');
+    chip.className='pool-chip'+(m.bucket?' assigned':'');
+    chip.style.cssText='display:inline-flex;align-items:center;gap:5px;';
+    const chipLabel=document.createElement('span');
+    chipLabel.textContent=(m.name||'(unnamed)')+(m.year?' · '+m.year.slice(0,2):'');
+    const chipDel=document.createElement('span');
+    chipDel.textContent='×';
+    chipDel.style.cssText='font-size:13px;color:#aaa;cursor:pointer;line-height:1;';
+    chipDel.addEventListener('click',ev=>{ ev.stopPropagation(); closeAllChipMenus(); const r2=loadRoster(); r2.members.splice(i,1); saveRoster(r2); renderRoster(); });
+    chip.appendChild(chipLabel);
+    chip.appendChild(chipDel);
+    chip.dataset.i=i;
+    chip.addEventListener('click',e=>{
+      e.stopPropagation();
+      closeAllChipMenus();
+      const menu=document.createElement('div'); menu.className='pool-chip-menu';
+      BUCKET_DEFS.forEach(bd=>{
+        const btn=document.createElement('button');
+        btn.className='pcm-'+bd.key;
+        btn.textContent=(m.bucket===bd.key?'✓ ':'')+bd.label;
+        btn.addEventListener('click',ev=>{
+          ev.stopPropagation();
+          const r2=loadRoster();
+          r2.members[i].bucket=bd.key;
+          r2.members[i].action='';
+          saveRoster(r2); closeAllChipMenus(); renderRoster();
+        });
+        menu.appendChild(btn);
+      });
+      if(m.bucket){
+        const rm=document.createElement('button'); rm.className='pcm-remove'; rm.textContent='↩ Back to pool';
+        rm.addEventListener('click',ev=>{ ev.stopPropagation(); const r2=loadRoster(); r2.members[i].bucket=''; r2.members[i].action=''; saveRoster(r2); closeAllChipMenus(); renderRoster(); });
+        menu.appendChild(rm);
+      }
+      document.body.appendChild(menu);
+      const rect=chip.getBoundingClientRect();
+      menu.style.top=(rect.bottom+6)+'px';
+      menu.style.left=rect.left+'px';
+    });
+    pool.appendChild(chip);
+  });
+  document.addEventListener('click', closeAllChipMenus, {once:true});
+
+  // Bucket columns
+  const bucketsEl=document.getElementById('roster-buckets'); bucketsEl.innerHTML='';
+  BUCKET_DEFS.forEach(bd=>{
+    const members=(r.members||[]).map((m,i)=>({m,i})).filter(({m})=>m.bucket===bd.key);
+    const sec=document.createElement('div'); sec.className='bucket-section '+bd.cls;
+    let html=`<div class="bucket-label">${bd.label}</div>`;
+    if(bd.desc) html+=`<div class="bucket-desc">${bd.desc}</div>`;
+    html+=`<div class="bucket-list">`;
+    if(!members.length){ html+=`<div class="bucket-empty">None yet</div>`; }
+    else members.forEach(({m,i})=>{
+      const opts=bd.actions.map(a=>`<option${m.action===a?' selected':''}>${a}</option>`).join('');
+      html+=`<div class="bucket-row">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div><div class="bucket-name">${m.name||'(unnamed)'}</div>${m.year?`<div class="bucket-name-sub">${m.year}</div>`:''}</div>
+          <button class="bucket-rm" data-i="${i}">×</button>
+        </div>
+        ${bd.actions.length?`<select class="bucket-sel" data-i="${i}"><option value="">Next step…</option>${opts}</select>`:''}
+        ${m.action==='Other'?`<input class="bucket-other" data-i="${i}" placeholder="Describe…" value="${(m.actionOther||'').replace(/"/g,'&quot;')}" style="margin-top:4px;width:100%;background:#f5f6fa;border:1.5px solid #e0e6f0;border-radius:6px;padding:4px 8px;font-size:11px;outline:none;font-family:inherit;">`:''}
+      </div>`;
+    });
+    html+=`</div>`;
+    sec.innerHTML=html;
+    sec.querySelectorAll('.bucket-sel').forEach(sel=>sel.addEventListener('change',e=>{
+      const r2=loadRoster(); r2.members[+e.target.dataset.i].action=e.target.value; r2.members[+e.target.dataset.i].actionOther=''; saveRoster(r2); renderRoster();
+    }));
+    sec.querySelectorAll('.bucket-other').forEach(inp=>inp.addEventListener('input',e=>{
+      const r2=loadRoster(); r2.members[+e.target.dataset.i].actionOther=e.target.value; saveRoster(r2);
+    }));
+    sec.querySelectorAll('.bucket-rm').forEach(btn=>btn.addEventListener('click',e=>{
+      const r2=loadRoster(); r2.members[+e.target.dataset.i].bucket=''; r2.members[+e.target.dataset.i].action=''; saveRoster(r2); renderRoster();
+    }));
+    bucketsEl.appendChild(sec);
+  });
+}
+
+function extractNamesFromText(text){
+  // Split on newlines, tabs, or semicolons; filter lines that look like names
+  const lines = text.split(/[\n\r]+/);
+  const names = [];
+  const skipPatterns = /^(name|first|last|student|member|full name|#|no\.|id|email|phone|year|class|major)/i;
+  const looksLikeName = str => {
+    const s = str.trim().replace(/[^a-zA-Z\s'\-\.]/g, '').trim();
+    if(!s || s.length < 3) return false;
+    if(skipPatterns.test(s)) return false;
+    const words = s.split(/\s+/).filter(Boolean);
+    if(words.length < 1 || words.length > 5) return false;
+    // Most words should start with uppercase
+    const ucCount = words.filter(w => /^[A-Z]/.test(w)).length;
+    return ucCount >= Math.ceil(words.length * 0.5);
+  };
+  lines.forEach(line=>{
+    // For CSV lines, try first two columns as potential "Last, First" or "First Last"
+    const cols = line.split(/\t|,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
+    let candidate = '';
+    if(cols.length >= 2){
+      const a = cols[0].replace(/"/g,'').trim();
+      const b = cols[1].replace(/"/g,'').trim();
+      const c = cols.length >= 3 ? cols[2].replace(/"/g,'').trim() : '';
+      candidate = (a + ' ' + b).trim();
+      if(c) candidate += '||YEAR:' + c;
+    } else {
+      candidate = line;
+    }
+    const yearTagMatch = candidate.match(/\|\|YEAR:(.+)$/);
+    const rawYear = yearTagMatch ? yearTagMatch[1].trim() : '';
+    const nameOnly = candidate.replace(/\|\|YEAR:.+$/,'');
+    const cleaned = nameOnly.replace(/[^a-zA-Z\s'\-\.]/g,'').trim();
+    if(looksLikeName(cleaned)){
+      const titled = cleaned.split(/\s+/).map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
+      const yearMap = {'1':'Freshman','2':'Sophomore','3':'Junior','4':'Senior','5':'Graduate','6':'Alumni',
+        'freshman':'Freshman','sophomore':'Sophomore','junior':'Junior','senior':'Senior','graduate':'Graduate','alumni':'Alumni',
+        'fr':'Freshman','so':'Sophomore','jr':'Junior','sr':'Senior','grad':'Graduate'};
+      const year = yearMap[rawYear.toLowerCase()] || rawYear || '';
+      names.push({name:titled, year});
+    }
+  });
+  return [...new Set(names)]; // deduplicate
+}
+
+async function handleRosterFileUpload(file){
+  const status = document.getElementById('roster-upload-status');
+  status.textContent = 'Reading file…';
+  const ext = file.name.split('.').pop().toLowerCase();
+  let names = [];
+  try{
+    if(ext==='csv'||ext==='txt'){
+      const text = await file.text();
+      names = extractNamesFromText(text);
+    } else if(ext==='xlsx'||ext==='xls'){
+      if(typeof XLSX==='undefined') throw new Error('Spreadsheet library not loaded. Check internet connection.');
+      const ab = await file.arrayBuffer();
+      const wb = XLSX.read(ab);
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const csv = XLSX.utils.sheet_to_csv(ws);
+      names = extractNamesFromText(csv);
+    } else if(ext==='docx'){
+      if(typeof JSZip==='undefined') throw new Error('JSZip library not loaded. Check internet connection.');
+      const ab = await file.arrayBuffer();
+      const zip = await JSZip.loadAsync(ab);
+      const xmlFile = zip.file('word/document.xml');
+      if(!xmlFile) throw new Error('Could not read Word document content.');
+      const xml = await xmlFile.async('string');
+      // Strip XML tags, collapse whitespace
+      const text = xml.replace(/<\/w:p>/gi,'\n').replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&nbsp;/g,' ').replace(/[ \t]+/g,' ');
+      names = extractNamesFromText(text);
+    } else {
+      throw new Error('Unsupported file type. Use .xlsx, .csv, .docx, or .txt');
+    }
+    if(names.length===0){
+      status.textContent = 'No names found. Try a different file or add manually below.';
+      return;
+    }
+    const r = loadRoster();
+    const existing = new Set(r.members.map(m=>m.name.trim().toLowerCase()));
+    const toAdd = names.filter(n=>!existing.has(n.name.toLowerCase()));
+    toAdd.forEach(n=>r.members.push({name:n.name, year:n.year||''}));
+    saveRoster(r);
+    renderRoster();
+    status.textContent = `✓ Added ${toAdd.length} name${toAdd.length!==1?'s':''} (${names.length-toAdd.length} duplicate${names.length-toAdd.length!==1?'s':''} skipped).`;
+    setTimeout(()=>{ status.textContent=''; },5000);
+  } catch(err){
+    status.textContent = '⚠ ' + err.message;
+  }
+}
+
+function initRosterControls(){
+  document.getElementById('roster-semester').addEventListener('input',e=>{
+    const r=loadRoster(); r.semester=e.target.value; saveRoster(r);
+  });
+  const uploadBtn = document.getElementById('roster-upload-btn');
+  const uploadInput = document.getElementById('roster-upload-input');
+  uploadBtn.addEventListener('click',()=>uploadInput.click());
+  uploadInput.addEventListener('change',e=>{
+    const f=e.target.files[0];
+    if(f) handleRosterFileUpload(f);
+    uploadInput.value='';
+  });
+  document.getElementById('stu-reset-all').addEventListener('click',()=>{
+    const r=loadRoster(); r.members.forEach(m=>{ m.bucket=''; m.action=''; }); saveRoster(r); renderRoster();
+  });
+
+  document.getElementById('stu-export-btn').addEventListener('click',()=>{
+    const payload={
+      roster: loadRoster(),
+      student: loadStudent(STU_FID,STU_CAT_ID,STU_CHAP),
+      boardNotes: localStorage.getItem('boardnotes__'+STU_FID+'__'+STU_CAT_ID+'__'+STU_CHAP)||'',
+      meta:{ fid:STU_FID, catId:STU_CAT_ID, chap:STU_CHAP, exported:new Date().toISOString() }
+    };
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download=STU_CHAP.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.json';
+    a.click();
+  });
+
+  const stuImportInput=document.getElementById('stu-import-input');
+  document.getElementById('stu-import-btn').addEventListener('click',()=>stuImportInput.click());
+  stuImportInput.addEventListener('change',e=>{
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const data=JSON.parse(ev.target.result);
+        if(data.roster) saveRoster(data.roster);
+        if(data.student) saveStudent(STU_FID,STU_CAT_ID,STU_CHAP,data.student);
+        if(data.boardNotes) localStorage.setItem('boardnotes__'+STU_FID+'__'+STU_CAT_ID+'__'+STU_CHAP,data.boardNotes);
+        renderRoster();
+        alert('Import successful.');
+      } catch(err){ alert('Could not read file. Make sure it\'s a valid export.'); }
+    };
+    reader.readAsText(file);
+    stuImportInput.value='';
+  });
+  document.getElementById('stu-reset-code').addEventListener('click',()=>{
+    const code=prompt('Enter universal access code to reset this chapter\'s code:');
+    if(!code) return;
+    if(code.trim()!==UNIVERSAL_CODE){ alert('Incorrect code.'); return; }
+    localStorage.removeItem(chapCodeKey(STU_FID,STU_CAT_ID,STU_CHAP));
+    alert('Access code for '+STU_CHAP+' has been reset. Next visitor will create a new one.');
+  });
+  const addInput=document.getElementById('roster-add-name');
+  const addBtn=document.getElementById('roster-add-btn');
+  const addYear=document.getElementById('roster-add-year');
+  const doAdd=()=>{
+    const name=addInput.value.trim(); if(!name) return;
+    const r=loadRoster(); r.members.push({name,year:addYear.value}); saveRoster(r); renderRoster();
+    addInput.value=''; addYear.value=''; addInput.focus();
+  };
+  addBtn.addEventListener('click',doAdd);
+  addInput.addEventListener('keydown',e=>{ if(e.key==='Enter') doAdd(); });
+}
+
+function renderStudentChapter(){
+  const sData=loadStudent(STU_FID,STU_CAT_ID,STU_CHAP);
+  const inviteList=sData.inviteList||[];
+  const outreachList=sData.outreachList||[];
+  renderRoster();
+  initRosterControls();
+
+  document.getElementById('stu-save-btn').onclick=()=>{
+    saveStudent(STU_FID,STU_CAT_ID,STU_CHAP,sData);
+    const note=document.getElementById('stu-saved-note');
+    note.style.display='inline'; setTimeout(()=>note.style.display='none',1800);
+    renderStudentBoard();
+    switchStuTab('board');
+  };
+}
+
+function renderStudentBoard(){
+  document.getElementById('board-chap-name').textContent=STU_CHAP;
+  document.getElementById('board-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+  const r=loadRoster();
+  const members=r.members||[];
+  const cols=document.getElementById('board-bucket-cols');
+  cols.innerHTML='';
+
+  const BOARD_COLORS={
+    pray:  {bg:'#fef6f9',border:'#f8bbd0',label:'#c2185b',badge:'rgba(194,24,91,.12)',badgeText:'#c2185b'},
+    interested:{bg:'#f3f8ff',border:'#bbdefb',label:'#1565c0',badge:'rgba(21,101,192,.12)',badgeText:'#1565c0'},
+    consistent:{bg:'#f3faf4',border:'#c8e6c9',label:'#2e7d32',badge:'rgba(46,125,50,.12)',badgeText:'#2e7d32'},
+  };
+
+  BUCKET_DEFS.forEach(bd=>{
+    const list=members.filter(m=>m.bucket===bd.key);
+    const c=BOARD_COLORS[bd.key];
+    const col=document.createElement('div');
+    col.style.cssText=`background:${c.bg};border:1.5px solid ${c.border};border-radius:12px;padding:14px;`;
+
+    let html=`<div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:${c.label};margin-bottom:2px;">${bd.label}</div>`;
+    html+=`<div style="font-size:11px;color:#aaa;margin-bottom:10px;">${list.length} person${list.length!==1?'s':''}</div>`;
+
+    if(bd.desc) html+=`<div style="font-size:10px;color:#999;font-style:italic;margin-bottom:10px;line-height:1.5;">${bd.desc}</div>`;
+
+    if(!list.length){
+      html+=`<div style="font-size:11px;color:#ccc;font-style:italic;">No one here yet.</div>`;
+    } else {
+      list.forEach(m=>{
+        html+=`<div style="background:#fff;border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+          <div style="font-size:12px;font-weight:700;color:#1a1f36;">${m.name||'(unnamed)'}</div>
+          ${m.year?`<div style="font-size:10px;color:#aaa;">${m.year}</div>`:''}
+          ${m.action?`<div style="display:inline-block;margin-top:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:${c.badge};color:${c.badgeText};">${m.action==='Other'&&m.actionOther?m.actionOther:m.action}</div>`:''}
+        </div>`;
+      });
+    }
+
+    col.innerHTML=html;
+    cols.appendChild(col);
+  });
+
+  // Notes
+  const notesKey='boardnotes__'+STU_FID+'__'+STU_CAT_ID+'__'+STU_CHAP;
+  const notesArea=document.getElementById('board-notes-area');
+  notesArea.value=localStorage.getItem(notesKey)||'';
+  notesArea.oninput=()=>localStorage.setItem(notesKey,notesArea.value);
+
+  // Export
+  document.getElementById('board-export-btn').onclick=()=>{
+    const date=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+    const r2=loadRoster(); const mems=r2.members||[];
+    const COLORS={pray:'#c2185b',interested:'#1565c0',consistent:'#2e7d32'};
+    let sectionsHtml='';
+    BUCKET_DEFS.forEach(bd=>{
+      const list=mems.filter(m=>m.bucket===bd.key);
+      const color=COLORS[bd.key];
+      let rows=list.length?list.map(m=>`<div style="padding:6px 0;border-bottom:1px solid #f0f0f0;"><strong>${m.name||''}</strong>${m.year?` <span style="color:#aaa;font-size:11px;">${m.year}</span>`:''}${m.action?` — <span style="color:${color};font-size:12px;">${m.action}${m.actionOther?' ('+m.actionOther+')':''}</span>`:''}</div>`).join(''):'<div style="color:#ccc;font-size:12px;font-style:italic;">None</div>';
+      sectionsHtml+=`<div style="flex:1;min-width:200px;"><div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:${color};margin-bottom:8px;">${bd.label} (${list.length})</div>${rows}</div>`;
+    });
+    const notes=(notesArea.value||'').replace(/\n/g,'<br>');
+    const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${STU_CHAP} — ${date}</title>
+    <style>body{font-family:system-ui,sans-serif;color:#1a1f36;padding:32px;max-width:900px;margin:auto;}h1{font-size:22px;margin-bottom:4px;}p{color:#888;font-size:12px;margin-bottom:24px;}@media print{button{display:none;}}</style></head>
+    <body><button onclick="window.print()" style="margin-bottom:20px;padding:8px 18px;background:#3949ab;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;">🖨 Print</button>
+    <h1>${STU_CHAP}</h1><p>${date}</p>
+    <div style="display:flex;gap:24px;margin-bottom:28px;">${sectionsHtml}</div>
+    ${notes?`<div style="border-top:2px solid #f0f0f0;padding-top:18px;"><div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#7986cb;margin-bottom:8px;">Notes</div><div style="font-size:13px;line-height:1.7;">${notes}</div></div>`:''}
+    </body></html>`;
+    const blob=new Blob([html],{type:'text/html'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download=STU_CHAP.replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.html';
+    a.click();
+  };
+}
+
+function renderStudentOverview(){
+  const frontier=FRONTIERS.find(f=>f.id===STU_FID);
+  const ovBoth=document.getElementById('stu-ov-both');
+  const ovDG=document.getElementById('stu-ov-dg');
+  const ovNone=document.getElementById('stu-ov-none');
+  ovBoth.innerHTML=''; ovDG.innerHTML=''; ovNone.innerHTML='';
+  let cntB=0,cntD=0,cntN=0;
+
+  const all=[];
+  frontier.categories.forEach(cat=>{
+    allChaptersFor(STU_FID,cat).forEach(chap=> all.push({cat,chap}));
+  });
+  all.sort((a,b)=>a.chap.localeCompare(b.chap)).forEach(({cat,chap})=>{
+    const d=loadFor(STU_FID,cat.id,chap);
+    const isMine=(cat.id===STU_CAT_ID&&chap===STU_CHAP);
+    const chip=document.createElement('div');
+    chip.className='stu-ov-chip'+(isMine?' mine':'');
+    chip.textContent=chap+(isMine?' (you)':'');
+    if(d.hasDG&&d.hasWAM){ ovBoth.appendChild(chip); cntB++; }
+    else if(d.hasDG){ ovDG.appendChild(chip); cntD++; }
+    else{ ovNone.appendChild(chip); cntN++; }
+  });
+  if(!cntB) ovBoth.innerHTML='<div class="stu-ov-empty">None yet</div>';
+  if(!cntD) ovDG.innerHTML='<div class="stu-ov-empty">None yet</div>';
+  if(!cntN) ovNone.innerHTML='<div class="stu-ov-empty">None yet</div>';
+}
+
+
+function switchStuTab(which){
+  document.querySelectorAll('.stu-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===which));
+  document.getElementById('stu-tab-chapter').style.display=which==='chapter'?'block':'none';
+  document.getElementById('stu-tab-board').style.display=which==='board'?'block':'none';
+}
+document.querySelectorAll('.stu-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    if(tab.dataset.tab==='board') renderStudentBoard();
+    switchStuTab(tab.dataset.tab);
+  });
+});
+
+// Always open to the entry screen regardless of what state was exported
+document.getElementById('entry-screen').style.display='flex';
+document.getElementById('topbar').style.display='none';
+document.getElementById('main').style.display='none';
+document.getElementById('board-view').classList.remove('open');
+document.getElementById('student-view').classList.remove('open');
+</script>
+</body>
+</html>
