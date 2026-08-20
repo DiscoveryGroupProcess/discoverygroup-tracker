@@ -1,1 +1,1 @@
-# discoverygroup-tracker
+# dgp-tracker
