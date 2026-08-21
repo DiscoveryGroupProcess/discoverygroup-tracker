@@ -1543,18 +1543,23 @@ document.getElementById('recap-btn').addEventListener('click',()=>{
       const anyNotes=people.some(p=>p.notes&&p.notes.trim());
       if(!d.hasDG&&!d.hasWAM&&!people.length&&!anyNotes) return;
       const coaches=[...new Set(people.map(p=>(p.coach||'').trim()).filter(Boolean))];
-      const coach=coaches.length?coaches[0]:'Unassigned';
-      if(!chapsByCoach[coach]) chapsByCoach[coach]=[];
-      chapsByCoach[coach].push({cat,chap,d});
+      const coachList=coaches.length?coaches:['Unassigned'];
+      coachList.forEach(coach=>{
+        if(!chapsByCoach[coach]) chapsByCoach[coach]=[];
+        chapsByCoach[coach].push({cat,chap,d,filterCoach:coach});
+      });
     });
   });
 
-  function makeRecapCard({cat,chap,d}){
+  function makeRecapCard({cat,chap,d,filterCoach}){
     const highKey=chapHighestStage(d);
     const stgObj=highKey?PIPELINE_STAGES.find(x=>x.key===highKey):null;
     const statusColor=stgObj?stgObj.color:'#9099b8';
     const statusLabel=stgObj?stgObj.label:'';
-    const people=getPeople(d).filter(p=>p.name||p.stage);
+    const allPeople=getPeople(d).filter(p=>p.name||p.stage);
+    const people=filterCoach&&filterCoach!=='Unassigned'
+      ? allPeople.filter(p=>(p.coach||'').trim()===filterCoach)
+      : allPeople;
     const peopleRows=people.map(p=>{
       const pStg=PIPELINE_STAGES.find(x=>x.key===p.stage);
       const color=pStg?pStg.color:'#9099b8';
@@ -1609,11 +1614,20 @@ document.getElementById('recap-btn').addEventListener('click',()=>{
     <button class="no-print" onclick="window.print()" style="background:#1a1f36;border:none;border-radius:6px;padding:6px 16px;color:#fff;font-size:11px;font-weight:600;cursor:pointer;">Print / Save PDF</button>
   </div>
 
-  <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
-    ${[['Total Orgs',total,'#1a1f36'],['Prayer',oPrayer,'#e91e63'],['Person of Peace',oPop,'#9c27b0'],['Passages',oPassages,'#3f51b5'],['Pt. of Decision',oPod,'#f57c00'],['Body+',oBody,'#2e7d32']].map(([label,num,color])=>`
-    <div style="flex:1;min-width:80px;text-align:center;background:#f8f9ff;border:1px solid #e8eaf5;border-radius:8px;padding:10px 6px;">
-      <div style="font-size:22px;font-weight:800;color:${color};line-height:1;">${num}</div>
-      <div style="font-size:9px;font-weight:600;color:#9099b8;margin-top:3px;letter-spacing:.04em;text-transform:uppercase;">${label}</div>
+  <div style="font-size:11px;font-weight:800;color:#1a1f36;margin-bottom:6px;">Penn State Total Orgs <span style="color:#5c6bc0;">${total}</span> &nbsp; Total Discovery Groups <span style="color:#3f51b5;">${oPassages+oPod+oBody}</span></div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+    ${[['Prayer',oPrayer,'#e91e63'],['PoP',oPop,'#9c27b0'],['Passages',oPassages,'#3f51b5'],['POD',oPod,'#f57c00'],['Connected to Body',oBody,'#2e7d32']].map(([label,num,color])=>`
+    <div style="flex:1;min-width:70px;text-align:center;background:#f8f9ff;border:1px solid #e8eaf5;border-radius:8px;padding:8px 6px;">
+      <div style="font-size:20px;font-weight:800;color:${color};line-height:1;">${num}</div>
+      <div style="font-size:8px;font-weight:600;color:#9099b8;margin-top:3px;letter-spacing:.04em;text-transform:uppercase;">${label}</div>
+    </div>`).join('')}
+  </div>
+  <div style="font-size:11px;font-weight:800;color:#1a1f36;margin-bottom:6px;">Penn State Body Total Orgs <span style="color:#2e7d32;">${oBody}</span> &nbsp; Disciples <span style="color:#00695c;">${pTotal}</span></div>
+  <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+    ${[['Body',pBody,'#2e7d32'],['WAM',pWam,'#00695c'],['Owning Chapter',pOwning,'#e65100'],['Reproduced Self',pReproduced,'#6d4c41'],['Coaching',pCoaching,'#37474f']].map(([label,num,color])=>`
+    <div style="flex:1;min-width:70px;text-align:center;background:#f8f9ff;border:1px solid #e8eaf5;border-radius:8px;padding:8px 6px;">
+      <div style="font-size:20px;font-weight:800;color:${color};line-height:1;">${num}</div>
+      <div style="font-size:8px;font-weight:600;color:#9099b8;margin-top:3px;letter-spacing:.04em;text-transform:uppercase;">${label}</div>
     </div>`).join('')}
   </div>
 
