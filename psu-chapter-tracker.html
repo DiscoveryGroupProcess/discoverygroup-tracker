@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -72,14 +72,14 @@ body{background:#f5f6fa;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans
 .row-badges{display:flex;gap:3px;flex-shrink:0;}
 .rbadge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;letter-spacing:.04em;}
 .rbadge-dg{background:rgba(121,134,203,.15);color:#7986cb;}
-.rbadge-wam{background:rgba(0,137,123,.15);color:#00897b;}
+.rbadge-wam{background:rgba(0,137,123,.15);color:#f57c00;}
 .status-toggle{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
 .tog{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;border:2px solid #dde1ee;color:#9099b8;transition:all .15s;}
 .tog.on-dg{border-color:#7986cb;background:rgba(121,134,203,.1);color:#7986cb;}
-.tog.on-wam{border-color:#00897b;background:rgba(0,137,123,.1);color:#00897b;}
+.tog.on-wam{border-color:#f57c00;background:rgba(0,137,123,.1);color:#f57c00;}
 .tog .tog-dot{width:8px;height:8px;border-radius:50%;background:#dde1ee;}
 .tog.on-dg .tog-dot{background:#7986cb;}
-.tog.on-wam .tog-dot{background:#00897b;}
+.tog.on-wam .tog-dot{background:#f57c00;}
 .sticker-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
 .sticker{cursor:pointer;user-select:none;font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;border:2px solid #e0e0e0;color:#aaa;background:#fafafa;transition:all .15s;letter-spacing:.02em;white-space:nowrap;}
 .sticker.on{color:#fff;border-color:transparent;}
@@ -91,9 +91,9 @@ body{background:#f5f6fa;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans
 .cat-pan .chapter-row.active{color:#1a1f36;background:#fdf0f5;}
 .cat-pan .chapter-row.active::before{background:#ec407a;}
 .cat-pan .cat-header .badge{background:rgba(236,64,122,.12);color:#ec407a;}
-.cat-oth .cat-header{color:#00897b;}
-.cat-oth .chapter-row.active::before{background:#00897b;}
-.cat-oth .cat-header .badge{background:rgba(0,137,123,.12);color:#00897b;}
+.cat-oth .cat-header{color:#f57c00;}
+.cat-oth .chapter-row.active::before{background:#f57c00;}
+.cat-oth .cat-header .badge{background:rgba(0,137,123,.12);color:#f57c00;}
 .add-chapter{padding:6px 14px 6px 26px;font-size:11px;color:#b0b8d4;cursor:pointer;display:flex;align-items:center;gap:5px;}
 .add-chapter:hover{color:#7986cb;}
 .add-chapter-form{padding:6px 10px 6px 22px;display:flex;gap:4px;}
@@ -113,10 +113,10 @@ body{background:#f5f6fa;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans
 .dash-stat-num{font-size:28px;font-weight:800;color:#1a1f36;line-height:1;}
 .dash-stat-label{font-size:11px;color:#9099b8;margin-top:4px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
 .dash-stat.accent-dg .dash-stat-num{color:#7986cb;}
-.dash-stat.accent-wam .dash-stat-num{color:#00897b;}
+.dash-stat.accent-wam .dash-stat-num{color:#f57c00;}
 .dash-stat.accent-both .dash-stat-num{color:#5c6bc0;}
 .dash-stat.accent-pod .dash-stat-num{color:#ef5350;}
-.dash-stat.accent-growth .dash-stat-num{color:#00897b;}
+.dash-stat.accent-growth .dash-stat-num{color:#f57c00;}
 .dash-section-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9099b8;margin-bottom:12px;}
 .dash-coaches{display:flex;flex-direction:column;gap:8px;margin-bottom:28px;}
 .dash-coach-row{background:#fff;border:1px solid #dde1ee;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;}
@@ -161,7 +161,7 @@ body{background:#f5f6fa;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans
 .student-name-inp{flex:1;background:transparent;border:none;outline:none;color:#1a1f36;font-size:13px;font-weight:600;}
 .student-status{border:none;border-radius:12px;padding:3px 10px;font-size:10px;font-weight:700;letter-spacing:.05em;cursor:pointer;outline:none;}
 .status-pod{background:rgba(239,83,80,.12);color:#ef5350;}
-.status-growth{background:rgba(0,137,123,.12);color:#00897b;}
+.status-growth{background:rgba(0,137,123,.12);color:#f57c00;}
 .status-watching{background:rgba(121,134,203,.12);color:#7986cb;}
 .student-note{width:100%;background:transparent;border:none;outline:none;color:#9099b8;font-size:11px;resize:none;line-height:1.5;font-family:inherit;}
 .student-note::placeholder{color:#c8cfe8;}
@@ -193,8 +193,8 @@ body{background:#f5f6fa;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans
 .board-col{flex:1;min-width:280px;}
 .board-col-hdr{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border-radius:6px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
 .board-col-hdr .col-count{font-size:10px;padding:1px 7px;border-radius:8px;font-weight:700;}
-.col-both .board-col-hdr{color:#00897b;background:rgba(0,137,123,.08);}
-.col-both .board-col-hdr .col-count{background:rgba(0,137,123,.15);color:#00897b;}
+.col-both .board-col-hdr{color:#f57c00;background:rgba(0,137,123,.08);}
+.col-both .board-col-hdr .col-count{background:rgba(0,137,123,.15);color:#f57c00;}
 .col-dg .board-col-hdr{color:#7986cb;background:rgba(121,134,203,.08);}
 .col-dg .board-col-hdr .col-count{background:rgba(121,134,203,.15);color:#7986cb;}
 .col-none .board-col-hdr{color:#9099b8;background:rgba(144,153,184,.08);}
@@ -324,9 +324,9 @@ body{background:#f5f6fa;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans
 .sec-wam .stu-section-label{color:#5c35c5;}
 .sec-wam textarea{border-color:#e8e0ff;}
 .sec-wam textarea:focus{border-color:#7c4dff;box-shadow:0 0 0 3px rgba(124,77,255,.08);}
-.sec-steps .stu-section-label{color:#00897b;}
+.sec-steps .stu-section-label{color:#f57c00;}
 .sec-steps textarea{border-color:#c8ede9;}
-.sec-steps textarea:focus{border-color:#00897b;box-shadow:0 0 0 3px rgba(0,137,123,.08);}
+.sec-steps textarea:focus{border-color:#f57c00;box-shadow:0 0 0 3px rgba(0,137,123,.08);}
 .sec-people .stu-section-label{color:#e64a19;}
 .sec-chapter .stu-section-label{color:#1565c0;}
 
@@ -339,7 +339,7 @@ textarea::placeholder{color:#c8cfe8;}
 .stu-save-row{display:flex;align-items:center;gap:12px;margin-top:24px;}
 #stu-save-btn{background:linear-gradient(135deg,#3949ab,#7c4dff);border:none;border-radius:10px;padding:12px 32px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(57,73,171,.35);letter-spacing:.02em;transition:box-shadow .15s,transform .1s;}
 #stu-save-btn:hover{box-shadow:0 6px 20px rgba(57,73,171,.45);transform:translateY(-1px);}
-.stu-saved-note{font-size:12px;color:#00897b;font-weight:600;display:none;}
+.stu-saved-note{font-size:12px;color:#f57c00;font-weight:600;display:none;}
 
 /* Access code modal */
 #ac-overlay{position:fixed;inset:0;background:rgba(20,24,48,.55);z-index:9000;display:flex;align-items:center;justify-content:center;}
@@ -381,12 +381,12 @@ textarea::placeholder{color:#c8cfe8;}
 .stu-board-date{font-size:12px;color:#9099b8;margin-bottom:32px;font-weight:500;}
 .stu-board-section{margin-bottom:24px;padding:18px 20px;border-radius:12px;}
 .stu-board-section.bs-wam{background:linear-gradient(135deg,rgba(124,77,255,.06),rgba(92,54,197,.04));border-left:4px solid #7c4dff;}
-.stu-board-section.bs-steps{background:linear-gradient(135deg,rgba(0,137,123,.06),rgba(0,121,107,.04));border-left:4px solid #00897b;}
+.stu-board-section.bs-steps{background:linear-gradient(135deg,rgba(0,137,123,.06),rgba(0,121,107,.04));border-left:4px solid #f57c00;}
 .stu-board-section.bs-people{background:linear-gradient(135deg,rgba(230,74,25,.06),rgba(191,54,12,.04));border-left:4px solid #e64a19;}
 .stu-board-section.bs-outreach{background:linear-gradient(135deg,rgba(21,101,192,.06),rgba(13,71,161,.04));border-left:4px solid #1565c0;}
 .stu-board-section-label{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
 .bs-wam .stu-board-section-label{color:#7c4dff;}
-.bs-steps .stu-board-section-label{color:#00897b;}
+.bs-steps .stu-board-section-label{color:#f57c00;}
 .bs-people .stu-board-section-label{color:#e64a19;}
 .bs-outreach .stu-board-section-label{color:#1565c0;}
 .stu-board-body{font-size:13px;color:#2d3550;line-height:1.7;white-space:pre-wrap;}
@@ -402,7 +402,7 @@ textarea::placeholder{color:#c8cfe8;}
 .stu-overview-wrap{display:flex;gap:16px;flex-wrap:wrap;}
 .stu-ov-col{flex:1;min-width:220px;}
 .stu-ov-hdr{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:8px 12px;border-radius:8px;margin-bottom:12px;}
-.stu-ov-hdr.col-both{color:#00897b;background:rgba(0,137,123,.1);}
+.stu-ov-hdr.col-both{color:#f57c00;background:rgba(0,137,123,.1);}
 .stu-ov-hdr.col-dg{color:#5c35c5;background:rgba(92,53,197,.1);}
 .stu-ov-hdr.col-none{color:#9099b8;background:rgba(144,153,184,.1);}
 .stu-ov-chip{background:#fff;border:1.5px solid #e8eaf5;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:12px;color:#1a1f36;font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.04);}
@@ -411,7 +411,7 @@ textarea::placeholder{color:#c8cfe8;}
 .stu-overview-wrap{display:flex;gap:16px;flex-wrap:wrap;}
 .stu-ov-col{flex:1;min-width:220px;}
 .stu-ov-hdr{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border-radius:6px;margin-bottom:12px;}
-.stu-ov-hdr.col-both{color:#00897b;background:rgba(0,137,123,.08);}
+.stu-ov-hdr.col-both{color:#f57c00;background:rgba(0,137,123,.08);}
 .stu-ov-hdr.col-dg{color:#7986cb;background:rgba(121,134,203,.08);}
 .stu-ov-hdr.col-none{color:#9099b8;background:rgba(144,153,184,.08);}
 .stu-ov-chip{background:#fff;border:1px solid #dde1ee;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:12px;color:#1a1f36;font-weight:500;}
@@ -469,7 +469,7 @@ textarea::placeholder{color:#c8cfe8;}
   <div style="width:1px;height:20px;background:#dde1ee;margin:0 4px;flex-shrink:0;"></div>
   <!-- Actions -->
   <button id="board-btn">📋 Board View</button>
-  <button id="recap-btn" class="topbar-btn" style="color:#00897b;border-color:#b2dfdb;">↓ Weekly Recap</button>
+  <button id="recap-btn" class="topbar-btn" style="color:#f57c00;border-color:#b2dfdb;">↓ Weekly Recap</button>
   <button id="export-btn" class="topbar-btn">↓ Export</button>
   <label class="topbar-btn" style="cursor:pointer;">↑ Import<input type="file" accept=".json,.html" style="display:none;" id="import-inp"></label>
   <button id="undo-btn" class="topbar-btn" disabled>↩ Undo</button>
@@ -606,13 +606,44 @@ const PIPELINE_STAGES = [
   { key:'prayer',    label:'Prayer',           color:'#e91e63', group:'Mission' },
   { key:'pop',       label:'Person of Peace',  color:'#9c27b0', group:'Mission' },
   { key:'passages',  label:'Passages',         color:'#3f51b5', group:'Mission' },
-  { key:'pod',       label:'Point of Decision',color:'#00897b', group:'Mission' },
+  { key:'pod',       label:'Point of Decision',color:'#f57c00', group:'Mission' },
   { key:'body',      label:'Body',             color:'#2e7d32', group:'Discipleship' },
   { key:'wam',       label:'WAM Group',        color:'#00695c', group:'Discipleship' },
   { key:'owning',    label:'Owning Org',       color:'#e65100', group:'Fruit' },
   { key:'reproduced',label:'Reproduced Self',  color:'#6d4c41', group:'Fruit' },
   { key:'coaching',  label:'Coaching Others',  color:'#37474f', group:'Fruit' },
 ];
+
+function getPeople(d){
+  if(d.people) return d.people;
+  if(d.stage) return [{name:'',stage:d.stage,coach:d.coach||''}];
+  return [];
+}
+function chapHighestStage(d){
+  const people=getPeople(d);
+  let maxIdx=-1;
+  people.forEach(p=>{ const idx=PIPELINE_STAGES.findIndex(s=>s.key===p.stage); if(idx>maxIdx) maxIdx=idx; });
+  return maxIdx>=0?PIPELINE_STAGES[maxIdx].key:null;
+}
+function chapDeriveFlags(d){
+  const people=getPeople(d);
+  let maxIdx=-1;
+  people.forEach(p=>{ const idx=PIPELINE_STAGES.findIndex(s=>s.key===p.stage); if(idx>maxIdx) maxIdx=idx; });
+  d.hasDG=maxIdx>=2; d.hasWAM=maxIdx>=5;
+}
+function nextPipelineStage(stageKey){
+  if(!stageKey) return null;
+  const idx=PIPELINE_STAGES.findIndex(s=>s.key===stageKey);
+  return (idx>=0&&idx<PIPELINE_STAGES.length-1)?PIPELINE_STAGES[idx+1]:null;
+}
+function stageGroup(d){
+  const key=chapHighestStage(d);
+  if(!key) return 'none';
+  const idx=PIPELINE_STAGES.findIndex(s=>s.key===key);
+  if(idx>=6) return 'fruit';
+  if(idx>=4) return 'discipleship';
+  return 'mission';
+}
 
 const PSU_CATEGORIES = [
   {
@@ -729,16 +760,16 @@ const CAT_COLORS = {ifc:'#7986cb', pan:'#ec407a', oth:'#26c6da', groups:'#7986cb
 const CAT_BADGE_STYLE = {
   ifc:    'background:rgba(121,134,203,.12);color:#7986cb;',
   pan:    'background:rgba(236,64,122,.12);color:#ec407a;',
-  oth:    'background:rgba(0,137,123,.12);color:#00897b;',
+  oth:    'background:rgba(0,137,123,.12);color:#f57c00;',
   groups: 'background:rgba(121,134,203,.12);color:#7986cb;'
 };
-const STATUS_STYLE  = {pod:'background:rgba(239,83,80,.12);color:#ef5350;', growth:'background:rgba(0,137,123,.12);color:#00897b;', watching:'background:rgba(121,134,203,.12);color:#7986cb;'};
+const STATUS_STYLE  = {pod:'background:rgba(239,83,80,.12);color:#ef5350;', growth:'background:rgba(0,137,123,.12);color:#f57c00;', watching:'background:rgba(121,134,203,.12);color:#7986cb;'};
 const STATUS_LABEL  = {pod:'Point of Decision', growth:'Steps of Growth', watching:'Watching'};
 const PASSCODE = 'Isaiah55';
 
 const COACH_PALETTE = [
   ['#5c6bc0','rgba(92,107,192,.1)'],   // indigo
-  ['#00897b','rgba(0,137,123,.1)'],    // teal
+  ['#f57c00','rgba(0,137,123,.1)'],    // teal
   ['#ef6c00','rgba(239,108,0,.1)'],    // orange
   ['#8e24aa','rgba(142,36,170,.1)'],   // purple
   ['#1565c0','rgba(21,101,192,.1)'],   // blue
@@ -841,49 +872,78 @@ function allChaptersFor(fid,cat){
 
 // ===== ROUTING =====
 function collectStats(fid, cats, loadFn){
-  let total=0, both=0, dgOnly=0, nothing=0, pod=0, growth=0;
+  let total=0, oPrayer=0, oPop=0, oPassages=0, oPod=0, oBody=0, oNone=0;
+  let pTotal=0, pBody=0, pWam=0, pOwning=0, pReproduced=0, pCoaching=0;
   const coachMap={};
+  const catStats={};
   cats.forEach(cat=>{
+    const cs={label:cat.label,prayer:0,pop:0,passages:0,pod:0,body:0,none:0,total:0};
     (fid ? allChaptersFor(fid,cat) : allChapters(cat)).forEach(chap=>{
-      total++;
+      total++; cs.total++;
       const d=loadFn(cat.id,chap);
-      if(d.hasDG&&d.hasWAM){ both++; }
-      else if(d.hasDG){ dgOnly++; }
-      else { nothing++; }
-      (d.students||[]).forEach(s=>{ if(s.status==='pod') pod++; if(s.status==='growth') growth++; });
-      if(d.coach&&d.coach.trim()){
-        const c=d.coach.trim();
-        if(!coachMap[c]) coachMap[c]=[];
-        coachMap[c].push({cat,chap});
-      }
+      chapDeriveFlags(d);
+      const highKey=chapHighestStage(d);
+      if(highKey==='prayer'){ oPrayer++; cs.prayer++; }
+      else if(highKey==='pop'){ oPop++; cs.pop++; }
+      else if(highKey==='passages'){ oPassages++; cs.passages++; }
+      else if(highKey==='pod'){ oPod++; cs.pod++; }
+      else if(highKey){ oBody++; cs.body++; }
+      else{ oNone++; cs.none++; }
+      getPeople(d).filter(p=>p.name||p.stage).forEach(p=>{
+        if(p.stage==='body'){ pBody++; pTotal++; }
+        else if(p.stage==='wam'){ pWam++; pTotal++; }
+        else if(p.stage==='owning'){ pOwning++; pTotal++; }
+        else if(p.stage==='reproduced'){ pReproduced++; pTotal++; }
+        else if(p.stage==='coaching'){ pCoaching++; pTotal++; }
+        const c=(p.coach&&p.coach.trim())||null;
+        if(c){ if(!coachMap[c]) coachMap[c]=[]; coachMap[c].push({cat,chap}); }
+      });
     });
+    catStats[cat.id]=cs;
   });
-  return {total,both,dgOnly,nothing,pod,growth,coachMap};
+  return {total,oPrayer,oPop,oPassages,oPod,oBody,oNone,pTotal,pBody,pWam,pOwning,pReproduced,pCoaching,coachMap,catStats};
 }
 
 function makeCatBar(cat, loadFn){
   const chaps=allChapters(cat);
-  let both=0,dgOnly=0,nothing=0;
-  chaps.forEach(chap=>{ const d=loadFn(cat.id,chap); if(d.hasDG&&d.hasWAM) both++; else if(d.hasDG) dgOnly++; else nothing++; });
+  let prayer=0,pop=0,passages=0,pod=0,body=0,none=0;
+  chaps.forEach(chap=>{
+    const key=chapHighestStage(loadFn(cat.id,chap));
+    if(key==='prayer') prayer++;
+    else if(key==='pop') pop++;
+    else if(key==='passages') passages++;
+    else if(key==='pod') pod++;
+    else if(key) body++;
+    else none++;
+  });
   const total=chaps.length||1;
-  const pBoth=Math.round(both/total*100), pDG=Math.round(dgOnly/total*100), pNone=100-pBoth-pDG;
-  return `<div class="dash-section-label" style="margin-top:14px;">${cat.label} <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#b0b8d4;">${chaps.length} orgs</span></div>
-    <div style="display:flex;border-radius:4px;overflow:hidden;height:10px;margin:6px 0 4px;background:#eef0fb;">
-      <div style="width:${pBoth}%;background:#00897b;transition:width .3s;"></div>
-      <div style="width:${pDG}%;background:#7986cb;transition:width .3s;"></div>
-      <div style="width:${pNone}%;background:#e8eaf5;"></div>
+  const pPr=Math.round(prayer/total*100), pPo=Math.round(pop/total*100), pPa=Math.round(passages/total*100), pPd=Math.round(pod/total*100), pB=Math.round(body/total*100), pN=100-pPr-pPo-pPa-pPd-pB;
+  const dot=(c,label,n)=>`<span style="font-size:10px;color:#6b75a0;"><span style="color:${c};">&#9632;</span> ${label}: <strong>${n}</strong></span>`;
+  return `<div style="margin-bottom:14px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+      <span style="font-size:11px;font-weight:700;color:#1a1f36;">${cat.label}</span>
+      <span style="font-size:10px;color:#9099b8;">${chaps.length} orgs</span>
     </div>
-    <div style="display:flex;gap:14px;font-size:10px;color:#6b75a0;">
-      <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#00897b;margin-right:4px;vertical-align:middle;"></span>DG+WAM: <strong>${both}</strong></span>
-      <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#7986cb;margin-right:4px;vertical-align:middle;"></span>DG only: <strong>${dgOnly}</strong></span>
-      <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#e8eaf5;border:1px solid #dde1ee;margin-right:4px;vertical-align:middle;"></span>Not started: <strong>${nothing}</strong></span>
-    </div>`;
+    <div style="display:flex;border-radius:4px;overflow:hidden;height:12px;background:#f0f2f9;">
+      <div style="width:${pPr}%;background:#e91e63;"></div>
+      <div style="width:${pPo}%;background:#9c27b0;"></div>
+      <div style="width:${pPa}%;background:#3f51b5;"></div>
+      <div style="width:${pPd}%;background:#f57c00;"></div>
+      <div style="width:${pB}%;background:#2e7d32;"></div>
+      <div style="width:${pN}%;background:#e8eaf5;"></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;">
+      ${dot('#e91e63','Prayer',prayer)}${dot('#9c27b0','PoP',pop)}${dot('#3f51b5','Passages',passages)}${dot('#f57c00','POD',pod)}${dot('#2e7d32','Body+',body)}
+      <span style="font-size:10px;color:#b0b8d4;"><span>&#9632;</span> None: <strong style="color:#555;">${none}</strong></span>
+    </div>
+  </div>`;
 }
 
 function renderDashboard(){
   const el=document.getElementById('empty');
   const now=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-  const {total,both,dgOnly,nothing,pod,growth,coachMap}=collectStats(null,ACTIVE_CATEGORIES,load);
+  const {total,oPrayer,oPop,oPassages,oPod,oBody,pTotal,pBody,pWam,pOwning,pReproduced,pCoaching,coachMap}=collectStats(null,ACTIVE_CATEGORIES,load);
+  const dgTotal=oPassages+oPod+oBody;
 
   const catBars=ACTIVE_CATEGORIES.map(cat=>makeCatBar(cat,load)).join('');
 
@@ -892,17 +952,38 @@ function renderDashboard(){
     return `<div class="dash-coach-row"><span class="dash-coach-name">${coach}</span><span class="dash-coach-chips">${chips}</span></div>`;
   }).join('');
 
+  function statBlock(num,label,color){
+    return `<div class="dash-stat"><div class="dash-stat-num" style="color:${color};">${num}</div><div class="dash-stat-label">${label}</div></div>`;
+  }
+
   el.innerHTML=`
     <div class="dash-greeting">${ACTIVE_FRONTIER.name}</div>
     <div class="dash-sub">${now}</div>
-    <div class="dash-stats">
-      <div class="dash-stat"><div class="dash-stat-num">${total}</div><div class="dash-stat-label">Total Orgs</div></div>
-      <div class="dash-stat accent-both"><div class="dash-stat-num">${both}</div><div class="dash-stat-label">DG + WAM</div></div>
-      <div class="dash-stat accent-dg"><div class="dash-stat-num">${dgOnly}</div><div class="dash-stat-label">DG Only</div></div>
-      <div class="dash-stat"><div class="dash-stat-num" style="color:#b0b8d4;">${nothing}</div><div class="dash-stat-label">Not Started</div></div>
-      <div class="dash-stat accent-pod"><div class="dash-stat-num">${pod}</div><div class="dash-stat-label">Pt. of Decision</div></div>
-      <div class="dash-stat accent-growth"><div class="dash-stat-num">${growth}</div><div class="dash-stat-label">Steps of Growth</div></div>
+
+    <div style="display:flex;align-items:baseline;gap:20px;margin-bottom:10px;flex-wrap:wrap;">
+      <span style="font-size:18px;font-weight:800;color:#1a1f36;letter-spacing:-.01em;">Penn State &nbsp;<span style="color:#b0b8d4;font-weight:500;font-size:13px;">Total Orgs</span> <span style="color:#5c6bc0;">${total}</span></span>
+      <span style="font-size:18px;font-weight:800;color:#1a1f36;letter-spacing:-.01em;"><span style="color:#b0b8d4;font-weight:500;font-size:13px;">Total Discovery Groups</span> <span style="color:#3f51b5;">${dgTotal}</span></span>
     </div>
+    <div class="dash-stats" style="margin-bottom:20px;">
+      ${statBlock(oPrayer,'Prayer','#e91e63')}
+      ${statBlock(oPop,'PoP','#9c27b0')}
+      ${statBlock(oPassages,'Passages','#3f51b5')}
+      ${statBlock(oPod,'POD','#f57c00')}
+      ${statBlock(oBody,'Connected to the Body','#2e7d32')}
+    </div>
+
+    <div style="display:flex;align-items:baseline;gap:20px;margin-bottom:10px;flex-wrap:wrap;">
+      <span style="font-size:18px;font-weight:800;color:#1a1f36;letter-spacing:-.01em;">Penn State Body &nbsp;<span style="color:#b0b8d4;font-weight:500;font-size:13px;">Total Orgs</span> <span style="color:#2e7d32;">${oBody}</span></span>
+      <span style="font-size:18px;font-weight:800;color:#1a1f36;letter-spacing:-.01em;"><span style="color:#b0b8d4;font-weight:500;font-size:13px;">Disciples</span> <span style="color:#00695c;">${pTotal}</span></span>
+    </div>
+    <div class="dash-stats" style="margin-bottom:20px;">
+      ${statBlock(pBody,'Body','#2e7d32')}
+      ${statBlock(pWam,'WAM','#00695c')}
+      ${statBlock(pOwning,'Owning Chapter','#e65100')}
+      ${statBlock(pReproduced,'Reproduced Self','#6d4c41')}
+      ${statBlock(pCoaching,'Coaching','#37474f')}
+    </div>
+
     <div class="dash-section-label" style="margin-top:4px;">By Category</div>
     <div style="background:#fff;border:1px solid #dde1ee;border-radius:10px;padding:14px 16px;margin-bottom:20px;">${catBars}</div>
     ${coachRows?`<div class="dash-section-label">Coaches</div><div class="dash-coaches">${coachRows}</div>`:''}`;
@@ -1124,9 +1205,9 @@ function buildSidebar(filter=''){
     body.className='cat-body'+(openCats[cat.id]||filter?' open':'');
 
     const sorted=[...chapters].sort((a,b)=>a.localeCompare(b));
-    const grpBoth=sorted.filter(c=>{ const d=load(cat.id,c); return d.hasDG&&d.hasWAM; });
-    const grpDG  =sorted.filter(c=>{ const d=load(cat.id,c); return d.hasDG&&!d.hasWAM; });
-    const grpNone=sorted.filter(c=>{ const d=load(cat.id,c); return !d.hasDG; });
+    const grpBoth=sorted.filter(c=>{ const d=load(cat.id,c); chapDeriveFlags(d); return d.hasDG&&d.hasWAM; });
+    const grpDG  =sorted.filter(c=>{ const d=load(cat.id,c); chapDeriveFlags(d); return d.hasDG&&!d.hasWAM; });
+    const grpNone=sorted.filter(c=>{ const d=load(cat.id,c); chapDeriveFlags(d); return !d.hasDG; });
 
     function makeSubSection(label,list,color){
       if(!list.length) return;
@@ -1142,8 +1223,10 @@ function buildSidebar(filter=''){
       const notes=hasNotes(cat.id,chap), pod=hasPod(cat.id,chap), growth=hasGrowth(cat.id,chap);
       row.className='chapter-row'+(activeKey===key?' active':'')+(pod?' has-pod':growth?' has-growth':notes?' has-notes':'');
       const d=load(cat.id,chap);
+      chapDeriveFlags(d);
       let badges='';
-      const s=d.stage?PIPELINE_STAGES.find(x=>x.key===d.stage):null;
+      const highKey=chapHighestStage(d);
+      const s=highKey?PIPELINE_STAGES.find(x=>x.key===highKey):null;
       if(s) badges=`<span class="rbadge" style="background:${s.color}22;color:${s.color};">${s.label}</span>`;
       row.innerHTML=`<span class="dot"></span><span class="row-name">${chap}</span><span class="row-badges">${badges}</span><button class="del-row" title="Remove">×</button>`;
       row.querySelector('.row-name').addEventListener('click',()=>{ activeKey=key; openChapter(cat,chap); buildSidebar(document.getElementById('search').value); });
@@ -1169,10 +1252,10 @@ function buildSidebar(filter=''){
     }
     else {
       PIPELINE_STAGES.forEach(s=>{
-        const list=sorted.filter(c=>{ const d=load(cat.id,c); return d.stage===s.key; });
+        const list=sorted.filter(c=>{ const d=load(cat.id,c); return chapHighestStage(d)===s.key; });
         makeSubSection(s.label, list, s.color);
       });
-      const unstaged=sorted.filter(c=>{ const d=load(cat.id,c); return !d.stage; });
+      const unstaged=sorted.filter(c=>{ const d=load(cat.id,c); return !chapHighestStage(d); });
       makeSubSection('No Stage', unstaged, '#b0b8d4');
     }
 
@@ -1212,6 +1295,9 @@ function renderPanel(cat,chap){
   const notes=data.notes||'';
   const updated=data._updated;
 
+  data.people = getPeople(data);
+  const stgOpts = PIPELINE_STAGES.map(s=>`<option value="${s.key}">${s.label}</option>`).join('');
+
   panel.innerHTML=`
     <div class="panel-header">
       <div class="panel-title">
@@ -1221,38 +1307,17 @@ function renderPanel(cat,chap){
       <span class="panel-cat-badge" style="background:${color}22;color:${color};">${cat.label.split(' ')[0].toUpperCase()}</span>
       <button id="clear-org-btn" style="background:none;border:1px solid #ffc8c8;border-radius:6px;padding:4px 10px;color:#ef5350;font-size:11px;cursor:pointer;">Clear</button>
     </div>
-    ${(()=>{
-        const cur=data.stage||'';
-        const opts=PIPELINE_STAGES.map(s=>`<option value="${s.key}"${cur===s.key?' selected':''}>${s.label}</option>`).join('');
-        const sel=cur?PIPELINE_STAGES.find(s=>s.key===cur):null;
-        return `<div class="status-toggle">
-          <select id="stage-sel" style="font-size:12px;font-weight:700;padding:6px 12px;border-radius:8px;border:2px solid ${sel?sel.color:'#dde1ee'};color:${sel?sel.color:'#9099b8'};background:${sel?sel.color+'18':'#fafafa'};outline:none;cursor:pointer;">
-            <option value="">— Select Stage —</option>${opts}
-          </select>
-        </div>`;
-      })()
-    }
-    <div class="coach-row">
-      <span class="coach-label">Coach</span>
-      <input class="coach-inp" id="coach-inp" placeholder="Who is coaching this group?" value="${data.coach||''}">
-    </div>
-    <div class="section">
-      <div class="section-label">${ACTIVE_FRONTIER.id==='alumni'?'Point People':'Student Leaders'}</div>
-      <div class="leaders-list" id="leaders-list"></div>
-      <button class="add-btn" id="add-leader-btn">+ Add ${ACTIVE_FRONTIER.id==='alumni'?'person':'leader'}</button>
-    </div>
-    <div class="section">
-      <div style="display:flex;align-items:center;margin-bottom:10px;">
-        <div class="section-label" style="margin-bottom:0;">${ACTIVE_FRONTIER.id==='alumni'?'Group':'Chapter'} Notes &amp; Next Steps</div>
-        <button id="save-notes-btn" style="margin-left:auto;background:#f0f2f9;border:1px solid #dde1ee;border-radius:6px;padding:4px 12px;color:#9099b8;font-size:11px;cursor:pointer;">✓ Save</button>
+    <div class="section" id="pipeline-people-section">
+      <div style="display:flex;align-items:center;margin-bottom:12px;">
+        <div class="section-label" style="margin-bottom:0;">Insiders</div>
+        <button id="add-pipeline-person-btn" style="margin-left:auto;background:#f0f2f9;border:1px solid #dde1ee;border-radius:6px;padding:4px 12px;color:#7986cb;font-size:11px;cursor:pointer;font-weight:600;">+ Add person</button>
       </div>
-      <textarea id="notes-area" placeholder="${ACTIVE_FRONTIER.id==='alumni'?"What's going on in this city? Who's involved, what are next steps, what's the vision…":"What's going on in this chapter? What are next steps? Who's leading, who's struggling, what's the feel of the group…"}">${notes}</textarea>
-      <div class="last-saved" id="last-saved">${updated?'Last saved: '+fmt(updated):''}</div>
-    </div>
-    <div class="section">
-      <div class="section-label">${ACTIVE_FRONTIER.id==='alumni'?'Key People':'Key Students'}</div>
-      <div id="students-list"></div>
-      <button class="add-student-btn" id="add-student-btn">+ Add ${ACTIVE_FRONTIER.id==='alumni'?'person':'key student'}</button>
+      <div id="pipeline-people-list"></div>
+      <div style="margin-top:16px;border-top:1px solid #eef0fb;padding-top:14px;">
+        <div class="section-label" style="margin-bottom:10px;">Notes &amp; Next Steps</div>
+        <div id="insider-notes-list"></div>
+        <div class="last-saved" id="last-saved">${updated?'Last saved: '+fmt(updated):''}</div>
+      </div>
     </div>
     <div class="section">
       <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;">
@@ -1311,94 +1376,78 @@ function renderPanel(cat,chap){
     document.getElementById('pc-cancel').addEventListener('click',()=>box.remove());
   }
 
-  {
-    const stageSel=document.getElementById('stage-sel');
-    stageSel.addEventListener('change',()=>{
-      const k=stageSel.value;
-      data.stage=k;
-      const s=PIPELINE_STAGES.find(x=>x.key===k);
-      stageSel.style.borderColor=s?s.color:'#dde1ee';
-      stageSel.style.color=s?s.color:'#9099b8';
-      stageSel.style.background=s?s.color+'18':'#fafafa';
-      const idx=PIPELINE_STAGES.findIndex(x=>x.key===k);
-      data.hasDG=idx>=2;
-      data.hasWAM=idx>=5;
-      autosave();
+  function renderPipelinePeople(){
+    const pl=document.getElementById('pipeline-people-list'); pl.innerHTML='';
+    data.people.forEach((p,i)=>{
+      const stgSel=PIPELINE_STAGES.find(s=>s.key===p.stage);
+      const nextStg=nextPipelineStage(p.stage);
+      const row=document.createElement('div');
+      row.style.cssText='display:grid;grid-template-columns:1fr 60px 90px 1fr 1fr 28px;gap:6px;align-items:center;margin-bottom:8px;';
+      row.innerHTML=`
+        <input class="pp-name" data-i="${i}" placeholder="Name" value="${p.name||''}" style="border:1px solid #dde1ee;border-radius:6px;padding:5px 8px;font-size:12px;outline:none;">
+        <select class="pp-year" data-i="${i}" style="border:1px solid #dde1ee;border-radius:6px;padding:5px 4px;font-size:11px;outline:none;">
+          ${['Year','Fr','So','Jr','Sr','Grad'].map(y=>`<option${p.year===y?' selected':''}>${y}</option>`).join('')}
+        </select>
+        <input class="pp-role" data-i="${i}" placeholder="Position" value="${p.role||''}" style="border:1px solid #dde1ee;border-radius:6px;padding:5px 8px;font-size:11px;outline:none;">
+        <select class="pp-stage" data-i="${i}" style="border:2px solid ${stgSel?stgSel.color:'#dde1ee'};border-radius:6px;padding:5px 6px;font-size:11px;font-weight:700;color:${stgSel?stgSel.color:'#9099b8'};background:${stgSel?stgSel.color+'15':'#fafafa'};outline:none;">
+          <option value="">— Stage —</option>${stgOpts}
+        </select>
+        <input class="pp-coach" data-i="${i}" placeholder="Coach" value="${p.coach||''}" style="border:1px solid #dde1ee;border-radius:6px;padding:5px 8px;font-size:12px;outline:none;">
+        <button class="pp-del" data-i="${i}" style="background:none;border:none;color:#c8cfe8;font-size:16px;cursor:pointer;line-height:1;">x</button>`;
+      const stageSel=row.querySelector('.pp-stage');
+      stageSel.value=p.stage||'';
+      if(nextStg){
+        const hint=document.createElement('div');
+        hint.style.cssText=`grid-column:1/-1;font-size:10px;font-weight:600;color:${nextStg.color};margin-top:-4px;margin-bottom:4px;padding-left:2px;`;
+        hint.textContent='→ Recommended next: '+nextStg.label;
+        row.appendChild(hint);
+      }
+      pl.appendChild(row);
+    });
+    pl.querySelectorAll('.pp-name').forEach(inp=>inp.addEventListener('input',e=>{ data.people[+e.target.dataset.i].name=e.target.value; renderInsiderNotes(); autosave(); }));
+    pl.querySelectorAll('.pp-year').forEach(sel=>sel.addEventListener('change',e=>{ data.people[+e.target.dataset.i].year=e.target.value; autosave(); }));
+    pl.querySelectorAll('.pp-role').forEach(inp=>inp.addEventListener('input',e=>{ data.people[+e.target.dataset.i].role=e.target.value; autosave(); }));
+    pl.querySelectorAll('.pp-stage').forEach(sel=>sel.addEventListener('change',e=>{
+      const i=+e.target.dataset.i; data.people[i].stage=e.target.value;
+      chapDeriveFlags(data); renderPipelinePeople(); renderInsiderNotes(); autosave();
       buildSidebar(document.getElementById('search').value);
-    });
+    }));
+    pl.querySelectorAll('.pp-coach').forEach(inp=>inp.addEventListener('input',e=>{ data.people[+e.target.dataset.i].coach=e.target.value; autosave(); }));
+    pl.querySelectorAll('.pp-del').forEach(btn=>btn.addEventListener('click',e=>{
+      data.people.splice(+e.target.dataset.i,1); renderPipelinePeople(); renderInsiderNotes(); autosave();
+      buildSidebar(document.getElementById('search').value);
+    }));
   }
-  document.getElementById('coach-inp').addEventListener('input',e=>{ data.coach=e.target.value; autosave(); });
 
-  function renderLeaders(){
-    const ll=document.getElementById('leaders-list'); ll.innerHTML='';
-    (data.leaders||[]).forEach((l,i)=>{
-      const row=document.createElement('div'); row.className='leader-row';
-      row.innerHTML=`<input class="leader-name" value="${l.name||''}" placeholder="Name" data-i="${i}">
-        <select class="leader-year" data-i="${i}">${['Year','Fr','So','Jr','Sr','Grad'].map(y=>`<option${l.year===y?' selected':''}>${y}</option>`).join('')}</select>
-        <select class="leader-role" data-i="${i}">${['President','VP','Treasurer','Secretary','Rush Chair','Social Chair','Member','Other'].map(r=>`<option${l.role===r?' selected':''}>${r}</option>`).join('')}</select>
-        <button class="leader-del" data-i="${i}">×</button>`;
-      ll.appendChild(row);
+  function renderInsiderNotes(){
+    const nl=document.getElementById('insider-notes-list'); nl.innerHTML='';
+    data.people.filter(p=>p.name||p.stage).forEach((p,i)=>{
+      const stgSel=PIPELINE_STAGES.find(s=>s.key===p.stage);
+      const nextStg=nextPipelineStage(p.stage);
+      const block=document.createElement('div');
+      block.style.cssText='margin-bottom:14px;';
+      block.innerHTML=`
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="font-size:12px;font-weight:700;color:#1a1f36;">${p.name||'Unnamed'}</span>
+          ${stgSel?`<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:${stgSel.color}18;color:${stgSel.color};">${stgSel.label}</span>`:''}
+          ${p.coach?`<span style="font-size:10px;color:#9099b8;">Coach: ${p.coach}</span>`:''}
+        </div>
+        ${nextStg?`<div style="font-size:10px;font-weight:600;color:${nextStg.color};margin-bottom:6px;">→ Next: ${nextStg.label}</div>`:''}
+        <textarea class="notes-area" data-pi="${i}" placeholder="Notes on ${p.name||'this person'}…" style="width:100%;min-height:60px;border:1px solid #e8eaf5;border-radius:8px;padding:8px 10px;font-size:12px;color:#2d3550;resize:vertical;outline:none;font-family:inherit;">${p.notes||''}</textarea>`;
+      nl.appendChild(block);
     });
-    ll.querySelectorAll('.leader-name').forEach(inp=>{ inp.addEventListener('input',e=>{ data.leaders[+e.target.dataset.i].name=e.target.value; autosave(); }); });
-    ll.querySelectorAll('.leader-role').forEach(sel=>{ sel.addEventListener('change',e=>{ data.leaders[+e.target.dataset.i].role=e.target.value; autosave(); }); });
-    ll.querySelectorAll('.leader-year').forEach(sel=>{ sel.addEventListener('change',e=>{ data.leaders[+e.target.dataset.i].year=e.target.value; autosave(); }); });
-    ll.querySelectorAll('.leader-del').forEach(btn=>{ btn.addEventListener('click',e=>{ data.leaders.splice(+e.target.dataset.i,1); renderLeaders(); autosave(); }); });
+    nl.querySelectorAll('.notes-area').forEach(ta=>ta.addEventListener('input',e=>{
+      data.people[+e.target.dataset.pi].notes=e.target.value; autosave();
+    }));
   }
-  data.leaders=leaders; renderLeaders();
 
-  document.getElementById('add-leader-btn').addEventListener('click',()=>{
-    data.leaders.push({name:'',role:'Member'}); renderLeaders(); autosave();
-    setTimeout(()=>document.querySelector('.leaders-list .leader-name:last-of-type')?.focus(),50);
-  });
+  renderPipelinePeople();
+  renderInsiderNotes();
 
-  const notesEl=document.getElementById('notes-area');
-  const saveNotesBtn=document.getElementById('save-notes-btn');
-  let saveTimer;
-  notesEl.addEventListener('input',()=>{ data.notes=notesEl.value; clearTimeout(saveTimer); saveTimer=setTimeout(()=>autosave(),600); });
-  saveNotesBtn.addEventListener('click',()=>{
-    data.notes=notesEl.value; autosave();
-    saveNotesBtn.textContent='✓ Saved'; saveNotesBtn.style.color='#00897b'; saveNotesBtn.style.borderColor='#00897b';
-    setTimeout(()=>{ saveNotesBtn.textContent='✓ Save'; saveNotesBtn.style.color='#9099b8'; saveNotesBtn.style.borderColor='#dde1ee'; },2000);
-  });
-
-  data.students=students;
-  function renderStudents(){
-    const sl=document.getElementById('students-list'); sl.innerHTML='';
-    (data.students||[]).forEach((s,i)=>{
-      const card=document.createElement('div'); card.className='student-card';
-      const statusOpts=[{v:'pod',l:'Point of Decision',cls:'status-pod'},{v:'growth',l:'Steps of Growth',cls:'status-growth'},{v:'watching',l:'Watching',cls:'status-watching'}];
-      const cur=statusOpts.find(o=>o.v===s.status)||statusOpts[2];
-      const isPod=s.status==='pod';
-      card.innerHTML=`<div class="student-top">
-        <input class="student-name-inp" value="${s.name||''}" placeholder="${ACTIVE_FRONTIER.id==='alumni'?'Person name':'Student name'}" data-i="${i}">
-        <select class="student-status ${cur.cls}" data-i="${i}">${statusOpts.map(o=>`<option value="${o.v}"${s.status===o.v?' selected':''}>${o.l}</option>`).join('')}</select>
-        <button class="student-del-btn" data-i="${i}">×</button>
-      </div>
-      <textarea class="student-note" rows="2" placeholder="General notes…" data-i="${i}">${s.note||''}</textarea>
-      <div class="pod-note-row${isPod?' visible':''}" data-i="${i}">
-        <textarea class="pod-note-inp" rows="2" placeholder="What decision are they facing? Where are they at spiritually?" data-i="${i}">${s.podNote||''}</textarea>
-      </div>`;
-      sl.appendChild(card);
-    });
-    sl.querySelectorAll('.student-name-inp').forEach(inp=>inp.addEventListener('input',e=>{ data.students[+e.target.dataset.i].name=e.target.value; autosave(); }));
-    sl.querySelectorAll('.student-status').forEach(sel=>{
-      sel.addEventListener('change',e=>{
-        const i=+e.target.dataset.i; data.students[i].status=e.target.value;
-        sel.className='student-status '+[{v:'pod',cls:'status-pod'},{v:'growth',cls:'status-growth'},{v:'watching',cls:'status-watching'}].find(o=>o.v===e.target.value).cls;
-        const podRow=sl.querySelectorAll('.pod-note-row')[i];
-        podRow.classList.toggle('visible', e.target.value==='pod');
-        autosave(); buildSidebar(document.getElementById('search').value);
-      });
-    });
-    sl.querySelectorAll('.student-note').forEach(ta=>ta.addEventListener('input',e=>{ data.students[+e.target.dataset.i].note=e.target.value; autosave(); }));
-    sl.querySelectorAll('.pod-note-inp').forEach(ta=>ta.addEventListener('input',e=>{ data.students[+e.target.dataset.i].podNote=e.target.value; autosave(); }));
-    sl.querySelectorAll('.student-del-btn').forEach(btn=>btn.addEventListener('click',e=>{ data.students.splice(+e.target.dataset.i,1); renderStudents(); autosave(); buildSidebar(document.getElementById('search').value); }));
-  }
-  renderStudents();
-
-  document.getElementById('add-student-btn').addEventListener('click',()=>{
-    data.students.push({name:'',status:'watching',note:''}); renderStudents(); autosave();
-    setTimeout(()=>{ const ins=document.querySelectorAll('.student-name-inp'); ins[ins.length-1]?.focus(); },50);
+  document.getElementById('add-pipeline-person-btn').addEventListener('click',()=>{
+    data.people.push({name:'',stage:'',coach:'',year:'Year',role:'',notes:''});
+    renderPipelinePeople(); renderInsiderNotes(); autosave();
+    setTimeout(()=>{ const ins=document.querySelectorAll('.pp-name'); ins[ins.length-1]?.focus(); },50);
   });
 
   const msData=loadMilestones(cat.id,chap);
@@ -1445,29 +1494,40 @@ document.getElementById('recap-btn').addEventListener('click',()=>{
   const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
   // Stats (no double counting)
-  const {total,both,dgOnly,nothing,pod,growth}=collectStats(null,ACTIVE_CATEGORIES,load);
+  const {total,oPrayer,oPop,oPassages,oPod,oBody,pTotal,pBody,pWam,pOwning,pReproduced,pCoaching}=collectStats(null,ACTIVE_CATEGORIES,load);
 
   // Category bars for page 1
   function recapCatBar(cat){
     const chaps=allChapters(cat);
-    let b=0,dg=0,none=0;
-    chaps.forEach(chap=>{ const d=load(cat.id,chap); if(d.hasDG&&d.hasWAM) b++; else if(d.hasDG) dg++; else none++; });
+    let prayer=0,pop=0,passages=0,pod=0,body=0,none=0;
+    chaps.forEach(chap=>{
+      const key=chapHighestStage(load(cat.id,chap));
+      if(key==='prayer') prayer++;
+      else if(key==='pop') pop++;
+      else if(key==='passages') passages++;
+      else if(key==='pod') pod++;
+      else if(key) body++;
+      else none++;
+    });
     const tot=chaps.length||1;
-    const pB=Math.round(b/tot*100), pD=Math.round(dg/tot*100), pN=100-pB-pD;
+    const pPr=Math.round(prayer/tot*100), pPo=Math.round(pop/tot*100), pPa=Math.round(passages/tot*100), pPd=Math.round(pod/tot*100), pB=Math.round(body/tot*100), pN=100-pPr-pPo-pPa-pPd-pB;
+    const dot=(c,label,n)=>`<span style="font-size:9px;color:#6b75a0;">&#9632;<span style="color:${c};"> ${label}: <strong>${n}</strong></span></span>`;
     return `<div style="margin-bottom:14px;">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
         <span style="font-size:11px;font-weight:700;color:#1a1f36;">${esc(cat.label)}</span>
         <span style="font-size:10px;color:#9099b8;">${chaps.length} orgs</span>
       </div>
       <div style="display:flex;border-radius:4px;overflow:hidden;height:12px;background:#f0f2f9;">
-        <div style="width:${pB}%;background:#00897b;"></div>
-        <div style="width:${pD}%;background:#7986cb;"></div>
+        <div style="width:${pPr}%;background:#e91e63;"></div>
+        <div style="width:${pPo}%;background:#9c27b0;"></div>
+        <div style="width:${pPa}%;background:#3f51b5;"></div>
+        <div style="width:${pPd}%;background:#f57c00;"></div>
+        <div style="width:${pB}%;background:#2e7d32;"></div>
         <div style="width:${pN}%;background:#e8eaf5;"></div>
       </div>
-      <div style="display:flex;gap:14px;font-size:9px;color:#6b75a0;margin-top:4px;">
-        <span>●<span style="color:#00897b;"> DG+WAM: <strong>${b}</strong></span></span>
-        <span>●<span style="color:#7986cb;"> DG only: <strong>${dg}</strong></span></span>
-        <span style="color:#b0b8d4;">● Not started: <strong style="color:#555;">${none}</strong></span>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;font-size:9px;color:#6b75a0;margin-top:4px;">
+        ${dot('#e91e63','Prayer',prayer)}${dot('#9c27b0','PoP',pop)}${dot('#3f51b5','Passages',passages)}${dot('#f57c00','POD',pod)}${dot('#2e7d32','Body+',body)}
+        <span style="color:#b0b8d4;">&#9632; None: <strong style="color:#555;">${none}</strong></span>
       </div>
     </div>`;
   }
@@ -1478,37 +1538,43 @@ document.getElementById('recap-btn').addEventListener('click',()=>{
   ACTIVE_CATEGORIES.forEach(cat=>{
     allChapters(cat).sort((a,b)=>a.localeCompare(b)).forEach(chap=>{
       const d=load(cat.id,chap);
-      if(!d.hasDG&&!d.hasWAM&&!(d.notes&&d.notes.trim())&&!(d.students||[]).filter(s=>s.name).length&&!(d.leaders||[]).filter(l=>l.name).length) return;
-      const coach=(d.coach&&d.coach.trim())||'Unassigned';
+      chapDeriveFlags(d);
+      const people=getPeople(d).filter(p=>p.name||p.stage);
+      const anyNotes=people.some(p=>p.notes&&p.notes.trim());
+      if(!d.hasDG&&!d.hasWAM&&!people.length&&!anyNotes) return;
+      const coaches=[...new Set(people.map(p=>(p.coach||'').trim()).filter(Boolean))];
+      const coach=coaches.length?coaches[0]:'Unassigned';
       if(!chapsByCoach[coach]) chapsByCoach[coach]=[];
       chapsByCoach[coach].push({cat,chap,d});
     });
   });
 
   function makeRecapCard({cat,chap,d}){
-    const statusColor=(d.hasDG&&d.hasWAM)?'#00897b':d.hasDG?'#7986cb':'#9099b8';
-    const status=(d.hasDG&&d.hasWAM)?'DG+WAM':d.hasDG?'DG only':'';
-    const leaders=(d.leaders||[]).filter(l=>l.name).map(l=>l.name).join(', ');
-    const notesRaw=(d.notes||'').trim();
-    const notes=notesRaw?`<div style="font-size:10px;color:#333;line-height:1.55;border-left:2px solid #e0e4f5;padding-left:7px;margin:5px 0;white-space:pre-wrap;">${esc(notesRaw)}</div>`:'';
-    const stus=(d.students||[]).filter(s=>s.name);
-    const stuRows=stus.map(s=>{
-      const color=s.status==='pod'?'#ef5350':s.status==='growth'?'#00897b':'#7986cb';
-      const label=s.status==='pod'?'POD':s.status==='growth'?'Growth':'Watching';
-      const podNote=s.status==='pod'&&s.podNote?` — <em style="color:#c62828;">${esc(s.podNote.slice(0,80))}</em>`:'';
-      return `<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:2px;">
-        <span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;background:${color}18;color:${color};white-space:nowrap;">${label}</span>
-        <span style="font-size:10px;color:#1a1f36;font-weight:600;">${esc(s.name)}${podNote}</span>
+    const highKey=chapHighestStage(d);
+    const stgObj=highKey?PIPELINE_STAGES.find(x=>x.key===highKey):null;
+    const statusColor=stgObj?stgObj.color:'#9099b8';
+    const statusLabel=stgObj?stgObj.label:'';
+    const people=getPeople(d).filter(p=>p.name||p.stage);
+    const peopleRows=people.map(p=>{
+      const pStg=PIPELINE_STAGES.find(x=>x.key===p.stage);
+      const color=pStg?pStg.color:'#9099b8';
+      const noteLine=p.notes&&p.notes.trim()?`<div style="font-size:9px;color:#555;margin-top:2px;padding-left:8px;white-space:pre-wrap;">${esc(p.notes.trim().slice(0,120))}</div>`:'';
+      return `<div style="margin-bottom:4px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${pStg?`<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;background:${color}18;color:${color};white-space:nowrap;">${pStg.label}</span>`:''}
+          <span style="font-size:10px;color:#1a1f36;font-weight:600;">${esc(p.name||'Unnamed')}</span>
+          ${p.year&&p.year!=='Year'?`<span style="font-size:9px;color:#9099b8;">${esc(p.year)}</span>`:''}
+          ${p.role?`<span style="font-size:9px;color:#b0b8d4;">${esc(p.role)}</span>`:''}
+        </div>${noteLine}
       </div>`;
     }).join('');
+    const hasContent=people.length>0;
     return `<div style="background:#fff;border:1px solid #e0e4f5;border-radius:8px;padding:10px 12px;break-inside:avoid;margin-bottom:8px;">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:${leaders||notes||stuRows?'6px':'0'};padding-bottom:${leaders||notes||stuRows?'6px':'0'};border-bottom:${leaders||notes||stuRows?'1px solid #f0f2f9':'none'};">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:${hasContent?'6px':'0'};padding-bottom:${hasContent?'6px':'0'};border-bottom:${hasContent?'1px solid #f0f2f9':'none'};">
         <span style="font-size:12px;font-weight:800;color:#1a1f36;flex:1;">${esc(chap)}</span>
-        ${status?`<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:6px;background:${statusColor}15;color:${statusColor};">${status}</span>`:''}
+        ${statusLabel?`<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:6px;background:${statusColor}15;color:${statusColor};">${statusLabel}</span>`:''}
       </div>
-      ${leaders?`<div style="font-size:10px;color:#666;margin-bottom:4px;">Leaders: <strong style="color:#333;">${esc(leaders)}</strong></div>`:''}
-      ${notes}
-      ${stuRows?`<div style="margin-top:5px;">${stuRows}</div>`:''}
+      ${peopleRows?`<div style="margin-top:4px;">${peopleRows}</div>`:''}
     </div>`;
   }
 
@@ -1543,9 +1609,9 @@ document.getElementById('recap-btn').addEventListener('click',()=>{
     <button class="no-print" onclick="window.print()" style="background:#1a1f36;border:none;border-radius:6px;padding:6px 16px;color:#fff;font-size:11px;font-weight:600;cursor:pointer;">Print / Save PDF</button>
   </div>
 
-  <div style="display:flex;gap:10px;margin-bottom:18px;">
-    ${[['Total Orgs',total,'#1a1f36'],['DG + WAM',both,'#00897b'],['DG Only',dgOnly,'#7986cb'],['Not Started',nothing,'#b0b8d4'],['Pt. of Decision',pod,'#ef5350'],['Steps of Growth',growth,'#26a69a']].map(([label,num,color])=>`
-    <div style="flex:1;text-align:center;background:#f8f9ff;border:1px solid #e8eaf5;border-radius:8px;padding:10px 6px;">
+  <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+    ${[['Total Orgs',total,'#1a1f36'],['Prayer',oPrayer,'#e91e63'],['Person of Peace',oPop,'#9c27b0'],['Passages',oPassages,'#3f51b5'],['Pt. of Decision',oPod,'#f57c00'],['Body+',oBody,'#2e7d32']].map(([label,num,color])=>`
+    <div style="flex:1;min-width:80px;text-align:center;background:#f8f9ff;border:1px solid #e8eaf5;border-radius:8px;padding:10px 6px;">
       <div style="font-size:22px;font-weight:800;color:${color};line-height:1;">${num}</div>
       <div style="font-size:9px;font-weight:600;color:#9099b8;margin-top:3px;letter-spacing:.04em;text-transform:uppercase;">${label}</div>
     </div>`).join('')}
@@ -1558,10 +1624,10 @@ document.getElementById('recap-btn').addEventListener('click',()=>{
   ${coachSections||'<p style="color:#b0b8d4;font-style:italic;margin-top:20px;">No chapters with data yet.</p>'}
 </body></html>`;
 
-  const a=document.createElement('a');
-  a.href='data:text/html;charset=utf-8,'+encodeURIComponent(html);
-  a.download='weekly-recap-'+new Date().toISOString().slice(0,10)+'.html';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  const blob=new Blob([html],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  window.open(url,'_blank');
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
 });
 
 // ===== EXPORT / IMPORT / UNDO =====
@@ -1620,23 +1686,24 @@ document.getElementById('undo-btn').addEventListener('click',()=>{
 document.getElementById('search').addEventListener('input',e=>buildSidebar(e.target.value));
 
 // ===== BOARD VIEW (ADMIN) =====
-function hasData(catId,chap){ const d=load(catId,chap); return !!(d.notes&&d.notes.trim())||(d.leaders||[]).length>0||(d.students||[]).length>0; }
-function hasDataFor(fid,catId,chap){ const d=loadFor(fid,catId,chap); return !!(d.notes&&d.notes.trim())||(d.leaders||[]).length>0||(d.students||[]).length>0; }
+function hasData(catId,chap){ const d=load(catId,chap); return getPeople(d).filter(p=>p.name||p.stage).length>0||!!(d.notes&&d.notes.trim())||(d.leaders||[]).length>0||(d.students||[]).length>0; }
+function hasDataFor(fid,catId,chap){ const d=loadFor(fid,catId,chap); return getPeople(d).filter(p=>p.name||p.stage).length>0||!!(d.notes&&d.notes.trim())||(d.leaders||[]).length>0||(d.students||[]).length>0; }
 
 function makeCard(cat,chap){
   const d=load(cat.id,chap);
+  chapDeriveFlags(d);
   const card=document.createElement('div'); card.className='board-card';
 
-  const stg=d.stage?PIPELINE_STAGES.find(x=>x.key===d.stage):null;
+  const highKey=chapHighestStage(d);
+  const stg=highKey?PIPELINE_STAGES.find(x=>x.key===highKey):null;
   const stgB=stg?`<span class="rbadge" style="background:${stg.color}22;color:${stg.color};">${stg.label}</span>`:'';
 
-  const leaderNames=(d.leaders||[]).filter(l=>l.name).map(l=>l.name).join(', ');
-  const notesSnippet=d.notes?d.notes.trim().slice(0,180)+(d.notes.length>180?'…':''):'';
-
-  const studentRows=(d.students||[]).filter(s=>s.name).map(s=>{
-    const badge=`<span class="st-badge" style="${STATUS_STYLE[s.status]||STATUS_STYLE.watching}">${STATUS_LABEL[s.status]||'Watching'}</span>`;
-    const podNote=(s.status==='pod'&&s.podNote)?`<div class="st-pod-note">${s.podNote.slice(0,120)}</div>`:'';
-    return `<div class="bc-student"><div class="bc-student-row">${badge}<span class="st-name">${s.name}</span></div>${podNote}</div>`;
+  const people=getPeople(d).filter(p=>p.name||p.stage);
+  const personRows=people.map(p=>{
+    const ps=PIPELINE_STAGES.find(x=>x.key===p.stage);
+    const badge=ps?`<span class="st-badge" style="background:${ps.color}18;color:${ps.color};font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;">${ps.label}</span>`:'';
+    const meta=[p.year&&p.year!=='Year'?p.year:'',p.role||''].filter(Boolean).join(' · ');
+    return `<div class="bc-student"><div class="bc-student-row">${badge}<span class="st-name">${p.name||'Unnamed'}</span>${meta?`<span style="font-size:9px;color:#b0b8d4;margin-left:4px;">${meta}</span>`:''}</div></div>`;
   }).join('');
 
   card.innerHTML=`
@@ -1644,10 +1711,8 @@ function makeCard(cat,chap){
       <span class="bc-name">${chap}</span>
       <span class="bc-badges">${stgB}</span>
     </div>
-    ${leaderNames?`<div class="bc-coach">${ACTIVE_FRONTIER.id==='alumni'?'Point People':'Student Leaders'}: <strong>${leaderNames}</strong></div>`:''}
-    ${notesSnippet||studentRows?'<div class="bc-divider"></div>':''}
-    ${notesSnippet?`<div class="bc-notes">${notesSnippet}</div>`:''}
-    ${studentRows?`<div class="bc-students">${studentRows}</div>`:''}`;
+    ${personRows?'<div class="bc-divider"></div>':''}
+    ${personRows?`<div class="bc-students">${personRows}</div>`:''}`;
 
   card.addEventListener('click',()=>{
     document.getElementById('board-view').classList.remove('open');
@@ -1675,8 +1740,9 @@ function buildBoard(){
     allChapters(cat).sort((a,b)=>a.localeCompare(b)).forEach(chap=>{
       if(!hasData(cat.id,chap)) return;
       const d=load(cat.id,chap);
-      const key=d.stage&&buckets[d.stage]!==undefined?d.stage:null;
-      if(key) buckets[key].push({cat,chap,coach:(d.coach||'').trim()});
+      chapDeriveFlags(d);
+      const key=chapHighestStage(d);
+      if(key&&buckets[key]!==undefined) buckets[key].push({cat,chap});
     });
   });
 
