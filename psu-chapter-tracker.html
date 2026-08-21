@@ -189,7 +189,7 @@ body{background:#f5f6fa;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans
 #board-topbar h2{font-size:15px;font-weight:700;color:#1a1f36;}
 #board-topbar span{font-size:11px;color:#9099b8;}
 #close-board{margin-left:auto;background:#f0f2f9;border:1px solid #dde1ee;border-radius:6px;padding:5px 14px;color:#7986cb;font-size:11px;cursor:pointer;font-weight:600;}
-#board-cols{display:flex;gap:20px;padding:24px;align-items:flex-start;min-height:100%;}
+#board-cols{display:flex;gap:16px;padding:24px;align-items:flex-start;min-height:100%;overflow-x:auto;}
 .board-col{flex:1;min-width:280px;}
 .board-col-hdr{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border-radius:6px;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
 .board-col-hdr .col-count{font-size:10px;padding:1px 7px;border-radius:8px;font-weight:700;}
@@ -525,20 +525,7 @@ textarea::placeholder{color:#c8cfe8;}
     <button id="board-notes-btn" style="background:none;border:1px solid #c5cae9;border-radius:6px;padding:5px 12px;color:#5c6bc0;font-size:11px;cursor:pointer;font-weight:600;">📝 Notes</button>
     <button id="close-board">← Back</button>
   </div>
-  <div id="board-cols">
-    <div class="board-col col-both">
-      <div class="board-col-hdr">DG + WAM <span class="col-count" id="cnt-both">0</span></div>
-      <div id="cards-both"></div>
-    </div>
-    <div class="board-col col-dg">
-      <div class="board-col-hdr">Discovery Group <span class="col-count" id="cnt-dg">0</span></div>
-      <div id="cards-dg"></div>
-    </div>
-    <div class="board-col col-none">
-      <div class="board-col-hdr">No Group <span class="col-count" id="cnt-none">0</span></div>
-      <div id="cards-none"></div>
-    </div>
-  </div>
+  <div id="board-cols"></div>
 </div>
 
 <!-- ACCESS CODE MODAL -->
@@ -615,15 +602,16 @@ textarea::placeholder{color:#c8cfe8;}
 
 <script>
 // ===== FRONTIER CONFIG =====
-const PSU_IFC_STICKERS = [
-  { key:'coaching',  label:'Coaching Others',       color:'#37474f' },
-  { key:'reproduced',label:'Reproduced',            color:'#6d4c41' },
-  { key:'thinking',  label:'Thinking for Chapter',  color:'#e65100' },
-  { key:'wam',       label:'WAM',                   color:'#2e7d32' },
-  { key:'pod',       label:'POD',                   color:'#00897b' },
-  { key:'launched',  label:'Launched',              color:'#3f51b5' },
-  { key:'pop',       label:'Person of Peace',       color:'#9c27b0' },
-  { key:'prayer',    label:'Prayer',                color:'#e91e63' },
+const PIPELINE_STAGES = [
+  { key:'prayer',    label:'Prayer',           color:'#e91e63', group:'Mission' },
+  { key:'pop',       label:'Person of Peace',  color:'#9c27b0', group:'Mission' },
+  { key:'passages',  label:'Passages',         color:'#3f51b5', group:'Mission' },
+  { key:'pod',       label:'Point of Decision',color:'#00897b', group:'Mission' },
+  { key:'body',      label:'Body',             color:'#2e7d32', group:'Discipleship' },
+  { key:'wam',       label:'WAM Group',        color:'#00695c', group:'Discipleship' },
+  { key:'owning',    label:'Owning Org',       color:'#e65100', group:'Fruit' },
+  { key:'reproduced',label:'Reproduced Self',  color:'#6d4c41', group:'Fruit' },
+  { key:'coaching',  label:'Coaching Others',  color:'#37474f', group:'Fruit' },
 ];
 
 const PSU_CATEGORIES = [
@@ -1101,7 +1089,14 @@ document.getElementById('home-btn').addEventListener('click',()=>{
     buildSidebar(document.getElementById('search').value);
   } else { goHome(); }
 });
-document.getElementById('stu-home').addEventListener('click',goHome);
+document.getElementById('stu-home').addEventListener('click',()=>{
+  const r=loadRoster();
+  if(r.members&&r.members.length>0){
+    const ok=confirm('Before you leave — have you exported your data? If you switch devices or clear your browser you\'ll lose it.\n\nClick OK to exit anyway, or Cancel to go back and export first.');
+    if(!ok) return;
+  }
+  goHome();
+});
 
 
 // ===== ADMIN TRACKER =====
@@ -1148,13 +1143,8 @@ function buildSidebar(filter=''){
       row.className='chapter-row'+(activeKey===key?' active':'')+(pod?' has-pod':growth?' has-growth':notes?' has-notes':'');
       const d=load(cat.id,chap);
       let badges='';
-      if(ACTIVE_FRONTIER&&ACTIVE_FRONTIER.id==='psu'){
-        const s=d.stage?PSU_IFC_STICKERS.find(x=>x.key===d.stage):null;
-        if(s) badges=`<span class="rbadge" style="background:${s.color}22;color:${s.color};">${s.label}</span>`;
-      } else {
-        if(d.hasDG) badges+=`<span class="rbadge rbadge-dg">DG</span>`;
-        if(d.hasWAM) badges+=`<span class="rbadge rbadge-wam">WAM</span>`;
-      }
+      const s=d.stage?PIPELINE_STAGES.find(x=>x.key===d.stage):null;
+      if(s) badges=`<span class="rbadge" style="background:${s.color}22;color:${s.color};">${s.label}</span>`;
       row.innerHTML=`<span class="dot"></span><span class="row-name">${chap}</span><span class="row-badges">${badges}</span><button class="del-row" title="Remove">×</button>`;
       row.querySelector('.row-name').addEventListener('click',()=>{ activeKey=key; openChapter(cat,chap); buildSidebar(document.getElementById('search').value); });
       row.querySelector('.dot').addEventListener('click',()=>{ activeKey=key; openChapter(cat,chap); buildSidebar(document.getElementById('search').value); });
@@ -1168,14 +1158,6 @@ function buildSidebar(filter=''){
     }
 
     if(filter){ chapters.sort((a,b)=>a.localeCompare(b)).forEach(addChapterRow); }
-    else if(ACTIVE_FRONTIER&&ACTIVE_FRONTIER.id==='psu'&&cat.id!=='oth'){
-      PSU_IFC_STICKERS.forEach(s=>{
-        const list=sorted.filter(c=>{ const d=load(cat.id,c); return d.stage===s.key; });
-        makeSubSection(s.label, list, s.color);
-      });
-      const unstaged=sorted.filter(c=>{ const d=load(cat.id,c); return !d.stage; });
-      makeSubSection('No Stage', unstaged, '#b0b8d4');
-    }
     else if(cat.id==='oth'){
       OTHER_SUB_CATS.forEach(sub=>{
         const list=sorted.filter(sub.test);
@@ -1185,7 +1167,14 @@ function buildSidebar(filter=''){
       const misc=sorted.filter(c=>!caught.has(c));
       if(misc.length) makeSubSection('Other',misc,'#b0b8d4');
     }
-    else { makeSubSection('DG + WAM',grpBoth,'#00897b'); makeSubSection('Discovery Group',grpDG,'#7986cb'); makeSubSection('No Group',grpNone,'#b0b8d4'); }
+    else {
+      PIPELINE_STAGES.forEach(s=>{
+        const list=sorted.filter(c=>{ const d=load(cat.id,c); return d.stage===s.key; });
+        makeSubSection(s.label, list, s.color);
+      });
+      const unstaged=sorted.filter(c=>{ const d=load(cat.id,c); return !d.stage; });
+      makeSubSection('No Stage', unstaged, '#b0b8d4');
+    }
 
     const _t=ACTIVE_FRONTIER&&ACTIVE_FRONTIER.term||{s:'chapter',p:'chapters'};
     const addRow=document.createElement('div'); addRow.className='add-chapter'; addRow.innerHTML='+ Add '+_t.s;
@@ -1232,21 +1221,16 @@ function renderPanel(cat,chap){
       <span class="panel-cat-badge" style="background:${color}22;color:${color};">${cat.label.split(' ')[0].toUpperCase()}</span>
       <button id="clear-org-btn" style="background:none;border:1px solid #ffc8c8;border-radius:6px;padding:4px 10px;color:#ef5350;font-size:11px;cursor:pointer;">Clear</button>
     </div>
-    ${ACTIVE_FRONTIER.id==='psu'
-      ? (()=>{
-          const cur=data.stage||'';
-          const opts=PSU_IFC_STICKERS.map(s=>`<option value="${s.key}"${cur===s.key?' selected':''}>${s.label}</option>`).join('');
-          const sel=cur?PSU_IFC_STICKERS.find(s=>s.key===cur):null;
-          return `<div class="status-toggle">
-            <select id="stage-sel" style="font-size:12px;font-weight:700;padding:6px 12px;border-radius:8px;border:2px solid ${sel?sel.color:'#dde1ee'};color:${sel?sel.color:'#9099b8'};background:${sel?sel.color+'18':'#fafafa'};outline:none;cursor:pointer;">
-              <option value="">— Select Stage —</option>${opts}
-            </select>
-          </div>`;
-        })()
-      : `<div class="status-toggle">
-          <div class="tog ${data.hasDG?'on-dg':''}" id="tog-dg"><span class="tog-dot"></span>Discovery Group in House</div>
-          <div class="tog ${data.hasWAM?'on-wam':''}" id="tog-wam"><span class="tog-dot"></span>WAM Group</div>
-        </div>`
+    ${(()=>{
+        const cur=data.stage||'';
+        const opts=PIPELINE_STAGES.map(s=>`<option value="${s.key}"${cur===s.key?' selected':''}>${s.label}</option>`).join('');
+        const sel=cur?PIPELINE_STAGES.find(s=>s.key===cur):null;
+        return `<div class="status-toggle">
+          <select id="stage-sel" style="font-size:12px;font-weight:700;padding:6px 12px;border-radius:8px;border:2px solid ${sel?sel.color:'#dde1ee'};color:${sel?sel.color:'#9099b8'};background:${sel?sel.color+'18':'#fafafa'};outline:none;cursor:pointer;">
+            <option value="">— Select Stage —</option>${opts}
+          </select>
+        </div>`;
+      })()
     }
     <div class="coach-row">
       <span class="coach-label">Coach</span>
@@ -1327,25 +1311,21 @@ function renderPanel(cat,chap){
     document.getElementById('pc-cancel').addEventListener('click',()=>box.remove());
   }
 
-  if(ACTIVE_FRONTIER.id==='psu'){
+  {
     const stageSel=document.getElementById('stage-sel');
     stageSel.addEventListener('change',()=>{
       const k=stageSel.value;
       data.stage=k;
-      const s=PSU_IFC_STICKERS.find(x=>x.key===k);
+      const s=PIPELINE_STAGES.find(x=>x.key===k);
       stageSel.style.borderColor=s?s.color:'#dde1ee';
       stageSel.style.color=s?s.color:'#9099b8';
       stageSel.style.background=s?s.color+'18':'#fafafa';
-      const stageOrder=['prayer','pop','launched','pod','wam','thinking','reproduced','coaching'];
-      const idx=stageOrder.indexOf(k);
+      const idx=PIPELINE_STAGES.findIndex(x=>x.key===k);
       data.hasDG=idx>=2;
-      data.hasWAM=idx>=4;
+      data.hasWAM=idx>=5;
       autosave();
       buildSidebar(document.getElementById('search').value);
     });
-  } else {
-    document.getElementById('tog-dg').addEventListener('click',function(){ data.hasDG=!data.hasDG; this.className='tog'+(data.hasDG?' on-dg':''); this.querySelector('.tog-dot').style.background=data.hasDG?'#7986cb':'#dde1ee'; autosave(); });
-    document.getElementById('tog-wam').addEventListener('click',function(){ data.hasWAM=!data.hasWAM; this.className='tog'+(data.hasWAM?' on-wam':''); this.querySelector('.tog-dot').style.background=data.hasWAM?'#00897b':'#dde1ee'; autosave(); });
   }
   document.getElementById('coach-inp').addEventListener('input',e=>{ data.coach=e.target.value; autosave(); });
 
@@ -1647,8 +1627,8 @@ function makeCard(cat,chap){
   const d=load(cat.id,chap);
   const card=document.createElement('div'); card.className='board-card';
 
-  const dgB=d.hasDG?`<span class="rbadge rbadge-dg">DG</span>`:'';
-  const wamB=d.hasWAM?`<span class="rbadge rbadge-wam">WAM</span>`:'';
+  const stg=d.stage?PIPELINE_STAGES.find(x=>x.key===d.stage):null;
+  const stgB=stg?`<span class="rbadge" style="background:${stg.color}22;color:${stg.color};">${stg.label}</span>`:'';
 
   const leaderNames=(d.leaders||[]).filter(l=>l.name).map(l=>l.name).join(', ');
   const notesSnippet=d.notes?d.notes.trim().slice(0,180)+(d.notes.length>180?'…':''):'';
@@ -1662,7 +1642,7 @@ function makeCard(cat,chap){
   card.innerHTML=`
     <div class="bc-top">
       <span class="bc-name">${chap}</span>
-      <span class="bc-badges">${dgB}${wamB}</span>
+      <span class="bc-badges">${stgB}</span>
     </div>
     ${leaderNames?`<div class="bc-coach">${ACTIVE_FRONTIER.id==='alumni'?'Point People':'Student Leaders'}: <strong>${leaderNames}</strong></div>`:''}
     ${notesSnippet||studentRows?'<div class="bc-divider"></div>':''}
@@ -1678,71 +1658,40 @@ function makeCard(cat,chap){
 
 function buildBoard(){
   const bv=document.getElementById('board-view');
-  bv.querySelector('#board-cols').innerHTML=`
-    <div class="board-col col-both"><div class="board-col-hdr">DG + WAM <span class="col-count" id="cnt-both">0</span></div><div id="cards-both"></div></div>
-    <div class="board-col col-dg"><div class="board-col-hdr">Discovery Group <span class="col-count" id="cnt-dg">0</span></div><div id="cards-dg"></div></div>
-    <div class="board-col col-none"><div class="board-col-hdr">No Group <span class="col-count" id="cnt-none">0</span></div><div id="cards-none"></div></div>`;
+  const colsHTML=PIPELINE_STAGES.map(s=>`
+    <div class="board-col" style="min-width:220px;">
+      <div class="board-col-hdr" style="color:${s.color};background:${s.color}14;">
+        ${s.label} <span class="col-count" id="cnt-${s.key}" style="background:${s.color}22;color:${s.color};">0</span>
+      </div>
+      <div id="cards-${s.key}"></div>
+    </div>`).join('');
+  bv.querySelector('#board-cols').innerHTML=colsHTML;
   document.getElementById('board-title').textContent='Weekly Board';
 
-  // Collect chapters into three buckets
-  const buckets={both:[],dg:[],none:[]};
+  const buckets={};
+  PIPELINE_STAGES.forEach(s=>{ buckets[s.key]=[]; });
+
   ACTIVE_CATEGORIES.forEach(cat=>{
     allChapters(cat).sort((a,b)=>a.localeCompare(b)).forEach(chap=>{
       if(!hasData(cat.id,chap)) return;
       const d=load(cat.id,chap);
-      const bucket=d.hasDG&&d.hasWAM?'both':d.hasDG?'dg':'none';
-      buckets[bucket].push({cat,chap,coach:(d.coach||'').trim()});
+      const key=d.stage&&buckets[d.stage]!==undefined?d.stage:null;
+      if(key) buckets[key].push({cat,chap,coach:(d.coach||'').trim()});
     });
   });
 
-  function renderBucket(items, container){
-    if(!items.length) return;
-    // Count coach occurrences
-    const coachCount={};
-    items.forEach(({coach})=>{ if(coach) coachCount[coach]=(coachCount[coach]||0)+1; });
-    const repeatCoaches=new Set(Object.keys(coachCount).filter(c=>coachCount[c]>1));
+  let total=0;
+  PIPELINE_STAGES.forEach(s=>{
+    const items=buckets[s.key];
+    const container=document.getElementById('cards-'+s.key);
+    if(!container) return;
+    if(!items.length){ container.innerHTML='<div class="bc-empty">None yet</div>'; }
+    else { items.forEach(({cat,chap})=> container.appendChild(makeCard(cat,chap))); total+=items.length; }
+    document.getElementById('cnt-'+s.key).textContent=items.length;
+  });
 
-    // Separate: grouped (repeat coach) vs solo
-    const grouped={};
-    const solo=[];
-    items.forEach(item=>{
-      if(item.coach && repeatCoaches.has(item.coach)){
-        if(!grouped[item.coach]) grouped[item.coach]=[];
-        grouped[item.coach].push(item);
-      } else { solo.push(item); }
-    });
-
-    // Render grouped first (alphabetical by coach name)
-    Object.keys(grouped).sort().forEach(coach=>{
-      const [fg,bg]=coachColor(coach);
-      const grpWrap=document.createElement('div');
-      grpWrap.style.cssText='margin-bottom:18px;';
-      const hdr=document.createElement('div');
-      hdr.style.cssText=`font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#1a1f36;background:${bg};border-left:3px solid ${fg};padding:5px 10px;border-radius:0 6px 6px 0;margin-bottom:8px;`;
-      hdr.textContent=coach;
-      grpWrap.appendChild(hdr);
-      grouped[coach].forEach(({cat,chap})=> grpWrap.appendChild(makeCard(cat,chap)));
-      container.appendChild(grpWrap);
-    });
-
-    // Render solo chapters after
-    solo.forEach(({cat,chap})=> container.appendChild(makeCard(cat,chap)));
-  }
-
-  renderBucket(buckets.both, document.getElementById('cards-both'));
-  renderBucket(buckets.dg,   document.getElementById('cards-dg'));
-  renderBucket(buckets.none, document.getElementById('cards-none'));
-
-  const cntBoth=buckets.both.length, cntDG=buckets.dg.length, cntNone=buckets.none.length;
-  const total=cntBoth+cntDG+cntNone;
-  if(!cntBoth) document.getElementById('cards-both').innerHTML='<div class="bc-empty">No chapters yet</div>';
-  if(!cntDG)   document.getElementById('cards-dg').innerHTML  ='<div class="bc-empty">No chapters yet</div>';
-  if(!cntNone) document.getElementById('cards-none').innerHTML ='<div class="bc-empty">No chapters yet</div>';
-  document.getElementById('cnt-both').textContent=cntBoth;
-  document.getElementById('cnt-dg').textContent=cntDG;
-  document.getElementById('cnt-none').textContent=cntNone;
   const _bt=ACTIVE_FRONTIER&&ACTIVE_FRONTIER.term||{p:'chapters'};
-  document.getElementById('board-subtitle').textContent=`${total} ${_bt.p} with notes · ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`;
+  document.getElementById('board-subtitle').textContent=`${total} ${_bt.p} in pipeline · ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`;
 }
 
 document.getElementById('board-btn').addEventListener('click',()=>{ buildBoard(); document.getElementById('board-view').classList.add('open'); });
@@ -1891,41 +1840,38 @@ function buildMasterBoard(){
     hdr.innerHTML=`${frontier.name}<span class="frontier-badge">${frontier.shortName}</span>`;
     section.appendChild(hdr);
 
-    const cols=document.createElement('div'); cols.className='frontier-cols';
-    const colBoth=document.createElement('div'); colBoth.className='board-col col-both';
-    colBoth.innerHTML='<div class="board-col-hdr">DG + WAM <span class="col-count">0</span></div>';
-    const colDG=document.createElement('div'); colDG.className='board-col col-dg';
-    colDG.innerHTML='<div class="board-col-hdr">Discovery Group <span class="col-count">0</span></div>';
-    const colNone=document.createElement('div'); colNone.className='board-col col-none';
-    colNone.innerHTML='<div class="board-col-hdr">No Group <span class="col-count">0</span></div>';
-
-    let cbCards=document.createElement('div'), cdCards=document.createElement('div'), cnCards=document.createElement('div');
-    colBoth.appendChild(cbCards); colDG.appendChild(cdCards); colNone.appendChild(cnCards);
-    let cntB=0,cntD=0,cntN=0;
+    const cols=document.createElement('div'); cols.className='frontier-cols'; cols.style.overflowX='auto';
+    const stageBuckets={};
+    PIPELINE_STAGES.forEach(s=>{ stageBuckets[s.key]=[]; });
 
     cats.forEach(cat=>{
       allChaptersFor(frontier.id,cat).sort((a,b)=>a.localeCompare(b)).forEach(chap=>{
         if(!hasDataFor(frontier.id,cat.id,chap)) return;
         const d=loadFor(frontier.id,cat.id,chap);
-        const card=document.createElement('div'); card.className='board-card';
-        const dgB=d.hasDG?`<span class="rbadge rbadge-dg">DG</span>`:'';
-        const wamB=d.hasWAM?`<span class="rbadge rbadge-wam">WAM</span>`:'';
-        const notesSnippet=d.notes?d.notes.trim().slice(0,120)+(d.notes.length>120?'…':''):'';
-        card.innerHTML=`<div class="bc-top"><span class="bc-name">${chap}</span><span class="bc-cat" style="${CAT_BADGE_STYLE[cat.id]||''}">${cat.label}</span><span class="bc-badges">${dgB}${wamB}</span></div>${notesSnippet?`<div class="bc-notes">${notesSnippet}</div>`:''}`;
-        if(d.hasDG&&d.hasWAM){ cbCards.appendChild(card); cntB++; }
-        else if(d.hasDG){ cdCards.appendChild(card); cntD++; }
-        else{ cnCards.appendChild(card); cntN++; }
+        const key=d.stage&&stageBuckets[d.stage]!==undefined?d.stage:null;
+        if(key) stageBuckets[key].push({chap,cat,d});
       });
     });
 
-    if(!cntB) cbCards.innerHTML='<div class="bc-empty">None yet</div>';
-    if(!cntD) cdCards.innerHTML='<div class="bc-empty">None yet</div>';
-    if(!cntN) cnCards.innerHTML='<div class="bc-empty">None yet</div>';
-    colBoth.querySelector('.col-count').textContent=cntB;
-    colDG.querySelector('.col-count').textContent=cntD;
-    colNone.querySelector('.col-count').textContent=cntN;
+    PIPELINE_STAGES.forEach(s=>{
+      const col=document.createElement('div'); col.className='board-col'; col.style.minWidth='180px';
+      col.innerHTML=`<div class="board-col-hdr" style="color:${s.color};background:${s.color}14;">${s.label} <span class="col-count" style="background:${s.color}22;color:${s.color};">0</span></div>`;
+      const cardsCont=document.createElement('div');
+      const items=stageBuckets[s.key];
+      if(!items.length){ cardsCont.innerHTML='<div class="bc-empty">None yet</div>'; }
+      else {
+        items.forEach(({chap,cat,d})=>{
+          const card=document.createElement('div'); card.className='board-card';
+          const notesSnippet=d.notes?d.notes.trim().slice(0,120)+(d.notes.length>120?'…':''):'';
+          card.innerHTML=`<div class="bc-top"><span class="bc-name">${chap}</span><span class="bc-cat" style="${CAT_BADGE_STYLE[cat.id]||''}">${cat.label}</span></div>${notesSnippet?`<div class="bc-notes">${notesSnippet}</div>`:''}`;
+          cardsCont.appendChild(card);
+        });
+      }
+      col.querySelector('.col-count').textContent=items.length;
+      col.appendChild(cardsCont);
+      cols.appendChild(col);
+    });
 
-    cols.appendChild(colBoth); cols.appendChild(colDG); cols.appendChild(colNone);
     section.appendChild(cols);
     container.appendChild(section);
   });
