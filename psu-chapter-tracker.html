@@ -475,6 +475,7 @@ textarea::placeholder{color:#c8cfe8;}
   <button id="recap-btn" class="topbar-btn" style="color:#f57c00;border-color:#b2dfdb;">↓ Weekly Recap</button>
   <button id="export-btn" class="topbar-btn">↓ Export</button>
   <label class="topbar-btn" style="cursor:pointer;">↑ Import<input type="file" accept=".json,.html" style="display:none;" id="import-inp"></label>
+  <label class="topbar-btn" style="cursor:pointer;color:#2e7d32;border-color:#a5d6a7;">⇄ Merge<input type="file" accept=".json,.html" style="display:none;" id="merge-inp"></label>
   <button id="undo-btn" class="topbar-btn" disabled>↩ Undo</button>
   <div style="width:1px;height:20px;background:#dde1ee;margin:0 4px;flex-shrink:0;"></div>
   <button id="notes-btn" class="topbar-btn" style="color:#5c6bc0;border-color:#c5cae9;">📝 Notes</button>
@@ -1709,6 +1710,82 @@ document.getElementById('import-inp').addEventListener('change',e=>{
       document.getElementById('chapter-panel').style.display='none';
       renderDashboard();
       buildSidebar();
+    }catch(err){ alert('Could not read file. Make sure it\'s an exported tracker HTML or JSON.'); }
+  };
+  reader.readAsText(file); e.target.value='';
+});
+
+// ===== MERGE IMPORT =====
+document.getElementById('merge-inp').addEventListener('change',e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const raw=ev.target.result;
+      let inDb={}, inRemoved={}, inCustom={};
+      const dbMatch=raw.match(/\/\*SAVED_DB_START\*\/([\s\S]*?)\/\*SAVED_DB_END\*\//);
+      if(dbMatch){
+        inDb=JSON.parse(dbMatch[1]);
+        const remMatch=raw.match(/\/\*SAVED_REMOVED_START\*\/([\s\S]*?)\/\*SAVED_REMOVED_END\*\//);
+        const cusMatch=raw.match(/\/\*SAVED_CUSTOM_START\*\/([\s\S]*?)\/\*SAVED_CUSTOM_END\*\//);
+        if(remMatch) inRemoved=JSON.parse(remMatch[1]);
+        if(cusMatch) inCustom=JSON.parse(cusMatch[1]);
+      } else {
+        const parsed=JSON.parse(raw);
+        if(parsed.db) inDb=parsed.db;
+        if(parsed.removed) inRemoved=parsed.removed;
+        if(parsed.custom) inCustom=parsed.custom;
+      }
+
+      // Deep merge: combine people arrays, incoming person wins on name match
+      function mergePeople(localPeople, inPeople){
+        const merged=[...localPeople];
+        inPeople.forEach(inp=>{
+          const name=(inp.name||'').trim().toLowerCase();
+          const idx=name?merged.findIndex(lp=>(lp.name||'').trim().toLowerCase()===name):-1;
+          if(idx>=0) merged[idx]={...merged[idx],...inp}; // incoming wins for matching name
+          else merged.push(inp);
+        });
+        return merged;
+      }
+
+      let added=0, updated=0;
+      Object.keys(inDb).forEach(key=>{
+        const inChap=inDb[key];
+        if(!_db[key]){
+          _db[key]=inChap; added++;
+        } else {
+          // merge people
+          const localPeople=getPeople(_db[key]);
+          const inPeople=getPeople(inChap);
+          const mergedPeople=mergePeople(localPeople,inPeople);
+          _db[key]={..._db[key],...inChap, people:mergedPeople};
+          updated++;
+        }
+      });
+
+      // merge removed/custom (incoming additions only)
+      Object.keys(inRemoved).forEach(fid=>{
+        if(!_removed[fid]) _removed[fid]={};
+        Object.keys(inRemoved[fid]).forEach(catId=>{
+          if(!_removed[fid][catId]) _removed[fid][catId]=[];
+          inRemoved[fid][catId].forEach(c=>{ if(!_removed[fid][catId].includes(c)) _removed[fid][catId].push(c); });
+        });
+      });
+      Object.keys(inCustom).forEach(fid=>{
+        if(!_custom[fid]) _custom[fid]={};
+        Object.keys(inCustom[fid]).forEach(catId=>{
+          if(!_custom[fid][catId]) _custom[fid][catId]=[];
+          inCustom[fid][catId].forEach(c=>{ if(!_custom[fid][catId].includes(c)) _custom[fid][catId].push(c); });
+        });
+      });
+
+      _persist(); persistChapters();
+      activeKey=null;
+      document.getElementById('empty').style.display='block';
+      document.getElementById('chapter-panel').style.display='none';
+      renderDashboard(); buildSidebar();
+      alert(`Merge complete. ${added} new chapters added, ${updated} chapters merged.`);
     }catch(err){ alert('Could not read file. Make sure it\'s an exported tracker HTML or JSON.'); }
   };
   reader.readAsText(file); e.target.value='';
