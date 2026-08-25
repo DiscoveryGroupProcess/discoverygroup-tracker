@@ -1402,11 +1402,25 @@ function renderPanel(cat,chap){
     document.getElementById('pc-cancel').addEventListener('click',()=>box.remove());
   }
 
+  // Stages shown in the panel selector — stops at WAM
+  const PANEL_STAGES=PIPELINE_STAGES.slice(0,6); // prayer→wam
+  const panelStgOpts=PANEL_STAGES.map(s=>`<option value="${s.key}">${s.label}</option>`).join('');
+
   function renderPipelinePeople(){
     const pl=document.getElementById('pipeline-people-list'); pl.innerHTML='';
+    // Column headers
+    const hdr=document.createElement('div');
+    hdr.style.cssText='display:grid;grid-template-columns:1fr 60px 90px 1fr 1fr 28px;gap:6px;margin-bottom:4px;';
+    hdr.innerHTML=`
+      <span style="font-size:9px;font-weight:700;color:#9099b8;text-transform:uppercase;letter-spacing:.06em;">Name</span>
+      <span style="font-size:9px;font-weight:700;color:#9099b8;text-transform:uppercase;letter-spacing:.06em;">Year</span>
+      <span style="font-size:9px;font-weight:700;color:#9099b8;text-transform:uppercase;letter-spacing:.06em;">Position</span>
+      <span style="font-size:9px;font-weight:700;color:#00695c;text-transform:uppercase;letter-spacing:.06em;">Where are they currently at?</span>
+      <span style="font-size:9px;font-weight:700;color:#9099b8;text-transform:uppercase;letter-spacing:.06em;">Coach</span>
+      <span></span>`;
+    pl.appendChild(hdr);
     data.people.forEach((p,i)=>{
-      const stgSel=PIPELINE_STAGES.find(s=>s.key===p.stage);
-      const nextStg=nextPipelineStage(p.stage);
+      const stgSel=PANEL_STAGES.find(s=>s.key===p.stage);
       const row=document.createElement('div');
       row.style.cssText='display:grid;grid-template-columns:1fr 60px 90px 1fr 1fr 28px;gap:6px;align-items:center;margin-bottom:8px;';
       row.innerHTML=`
@@ -1416,18 +1430,11 @@ function renderPanel(cat,chap){
         </select>
         <input class="pp-role" data-i="${i}" placeholder="Position" value="${p.role||''}" style="border:1px solid #dde1ee;border-radius:6px;padding:5px 8px;font-size:11px;outline:none;">
         <select class="pp-stage" data-i="${i}" style="border:2px solid ${stgSel?stgSel.color:'#dde1ee'};border-radius:6px;padding:5px 6px;font-size:11px;font-weight:700;color:${stgSel?stgSel.color:'#9099b8'};background:${stgSel?stgSel.color+'15':'#fafafa'};outline:none;">
-          <option value="">— Stage —</option>${stgOpts}
+          <option value="">— Stage —</option>${panelStgOpts}
         </select>
         <input class="pp-coach" data-i="${i}" placeholder="Coach" value="${p.coach||''}" style="border:1px solid #dde1ee;border-radius:6px;padding:5px 8px;font-size:12px;outline:none;">
         <button class="pp-del" data-i="${i}" style="background:none;border:none;color:#c8cfe8;font-size:16px;cursor:pointer;line-height:1;">x</button>`;
-      const stageSel=row.querySelector('.pp-stage');
-      stageSel.value=p.stage||'';
-      if(nextStg){
-        const hint=document.createElement('div');
-        hint.style.cssText=`grid-column:1/-1;font-size:10px;font-weight:600;color:${nextStg.color};margin-top:-4px;margin-bottom:4px;padding-left:2px;`;
-        hint.textContent='→ Recommended next: '+nextStg.label;
-        row.appendChild(hint);
-      }
+      row.querySelector('.pp-stage').value=p.stage||'';
       pl.appendChild(row);
     });
     pl.querySelectorAll('.pp-name').forEach(inp=>inp.addEventListener('input',e=>{ data.people[+e.target.dataset.i].name=e.target.value; renderInsiderNotes(); autosave(); }));
@@ -1445,25 +1452,101 @@ function renderPanel(cat,chap){
     }));
   }
 
+  function personalRecs(personal){
+    const recs=[];
+    if(!personal.includes('plan')) recs.push({text:'Get them in the Word plan',color:'#3f51b5'});
+    if(personal.includes('owning')) recs.push({text:'Next step: Reproduce Self',color:'#6d4c41'});
+    if(personal.includes('reproduced')) recs.push({text:'Next step: Coaching Others',color:'#37474f'});
+    return recs;
+  }
+  function groupRec(group){
+    if(group==='nothing') return {text:'Recommend: Start a DG',color:'#9c27b0'};
+    if(group==='dg'||group==='wam') return {text:'Next step: DG + in-house WAM',color:'#00695c'};
+    return null;
+  }
+
   function renderInsiderNotes(){
     const nl=document.getElementById('insider-notes-list'); nl.innerHTML='';
+
+    const btnStyle=(active,color)=>active
+      ?`font-size:10px;font-weight:700;padding:4px 10px;border-radius:16px;border:2px solid ${color};background:${color}18;color:${color};cursor:pointer;`
+      :`font-size:10px;font-weight:600;padding:4px 10px;border-radius:16px;border:1px solid #dde1ee;background:#f8f9ff;color:#9099b8;cursor:pointer;`;
+
+    const groupBtns=[
+      {key:'nothing',label:'Nothing'},
+      {key:'dg',label:'DG'},
+      {key:'wam',label:'Just In-House WAM'},
+      {key:'both',label:'DG + In-House WAM'},
+    ];
+    const personalBtns=[
+      {key:'plan',label:'14 Week Plan'},
+      {key:'owning',label:'Owning Org'},
+      {key:'reproduced',label:'Reproduced Self'},
+      {key:'coaching',label:'Coaching Others'},
+    ];
+
+    const wamPeople=data.people.filter(p=>p.stage==='wam'&&(p.name||p.stage));
+
+    // For each coach, find their most senior WAM person
+    const personalRank=p=>{ const pr=p.wamPersonal||[]; if(pr.includes('coaching')) return 3; if(pr.includes('reproduced')) return 2; if(pr.includes('owning')) return 1; return 0; };
+    const yearRank=p=>({Grad:5,Sr:4,Jr:3,So:2,Fr:1}[p.year]||0);
+    if(!data.wamGroupByCoach) data.wamGroupByCoach={};
+    const coachGroups={};
+    wamPeople.forEach(p=>{ const c=(p.coach||'').trim()||'Unassigned'; if(!coachGroups[c]) coachGroups[c]=[]; coachGroups[c].push(p); });
+    const seniorByCoach={};
+    Object.keys(coachGroups).forEach(c=>{ seniorByCoach[c]=[...coachGroups[c]].sort((a,b)=>{ const pr=personalRank(b)-personalRank(a); if(pr!==0) return pr; return yearRank(b)-yearRank(a); })[0]; });
+
+    // Per-person notes
     data.people.filter(p=>p.name||p.stage).forEach((p,i)=>{
       const stgSel=PIPELINE_STAGES.find(s=>s.key===p.stage);
-      const nextStg=nextPipelineStage(p.stage);
+      const isWam=p.stage==='wam';
+      const personal=p.wamPersonal||[];
+      const pRecs=isWam?personalRecs(personal):[];
+      const nextStg=!isWam?nextPipelineStage(p.stage):null;
+
       const block=document.createElement('div');
-      block.style.cssText='margin-bottom:14px;';
+      block.style.cssText='margin-bottom:14px;border:1px solid #eef0fb;border-radius:10px;padding:12px 14px;';
       block.innerHTML=`
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
           <span style="font-size:12px;font-weight:700;color:#1a1f36;">${p.name||'Unnamed'}</span>
           ${stgSel?`<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:${stgSel.color}18;color:${stgSel.color};">${stgSel.label}</span>`:''}
           ${p.coach?`<span style="font-size:10px;color:#9099b8;">Coach: ${p.coach}</span>`:''}
         </div>
-        ${nextStg?`<div style="font-size:10px;font-weight:600;color:${nextStg.color};margin-bottom:6px;">→ Next: ${nextStg.label}</div>`:''}
-        <textarea class="notes-area" data-pi="${i}" placeholder="Notes on ${p.name||'this person'}…" style="width:100%;min-height:60px;border:1px solid #e8eaf5;border-radius:8px;padding:8px 10px;font-size:12px;color:#2d3550;resize:vertical;outline:none;font-family:inherit;">${p.notes||''}</textarea>`;
+        ${nextStg?`<div style="font-size:10px;font-weight:700;color:${nextStg.color};margin-bottom:8px;">→ Next step: ${nextStg.label}</div>`:''}
+        ${isWam&&pRecs.length?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;">${pRecs.map(r=>`<span style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:10px;background:${r.color}12;color:${r.color};">→ ${r.text}</span>`).join('')}</div>`:''}
+        ${isWam?`
+        <div style="margin-bottom:8px;">
+          <div style="font-size:9px;font-weight:700;color:#00695c;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Personal</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            ${personalBtns.map(b=>`<button class="wp-btn" data-i="${i}" data-key="${b.key}" style="${btnStyle(personal.includes(b.key),'#00695c')}">${b.label}</button>`).join('')}
+          </div>
+        </div>
+        ${(()=>{ const coachKey=(p.coach||'').trim()||'Unassigned'; if(seniorByCoach[coachKey]!==p) return ''; const grp=(data.wamGroupByCoach||{})[coachKey]||''; const grpRec=groupRec(grp); return `<div style="margin-bottom:8px;">
+          <div style="font-size:9px;font-weight:700;color:#7c4dff;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Group</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">${groupBtns.map(b=>`<button class="wg-shared" data-coach="${coachKey}" data-key="${b.key}" style="${btnStyle(grp===b.key,'#7c4dff')}">${b.label}</button>`).join('')}</div>
+          ${grpRec?`<div style="font-size:10px;font-weight:700;margin-top:6px;color:${grpRec.color};">→ ${grpRec.text}</div>`:''}
+        </div>`; })()}
+        `:''}
+        <textarea class="notes-area" data-pi="${i}" placeholder="Notes on ${p.name||'this person'}…" style="width:100%;min-height:55px;border:1px solid #e8eaf5;border-radius:8px;padding:8px 10px;font-size:12px;color:#2d3550;resize:vertical;outline:none;font-family:inherit;box-sizing:border-box;">${p.notes||''}</textarea>`;
       nl.appendChild(block);
     });
+
     nl.querySelectorAll('.notes-area').forEach(ta=>ta.addEventListener('input',e=>{
       data.people[+e.target.dataset.pi].notes=e.target.value; autosave();
+    }));
+    nl.querySelectorAll('.wp-btn').forEach(btn=>btn.addEventListener('click',e=>{
+      const i=+e.target.dataset.i, key=e.target.dataset.key;
+      const p=data.people[i];
+      if(!p.wamPersonal) p.wamPersonal=[];
+      const idx=p.wamPersonal.indexOf(key);
+      if(idx>=0) p.wamPersonal.splice(idx,1); else p.wamPersonal.push(key);
+      autosave(); renderInsiderNotes();
+    }));
+    nl.querySelectorAll('.wg-shared').forEach(btn=>btn.addEventListener('click',e=>{
+      const key=e.target.dataset.key, coach=e.target.dataset.coach||'Unassigned';
+      if(!data.wamGroupByCoach) data.wamGroupByCoach={};
+      data.wamGroupByCoach[coach]=(data.wamGroupByCoach[coach]===key)?'':key;
+      autosave(); renderInsiderNotes();
     }));
   }
 
@@ -1839,18 +1922,43 @@ function makeCard(cat,chap){
 
 function buildBoard(){
   const bv=document.getElementById('board-view');
-  const colsHTML=PIPELINE_STAGES.map(s=>`
+  const BOARD_STAGES=PIPELINE_STAGES.slice(0,6); // prayer→wam only
+
+  const colsHTML=BOARD_STAGES.map(s=>`
     <div class="board-col" style="min-width:220px;">
       <div class="board-col-hdr" style="color:${s.color};background:${s.color}14;">
         ${s.label} <span class="col-count" id="cnt-${s.key}" style="background:${s.color}22;color:${s.color};">0</span>
       </div>
       <div id="cards-${s.key}"></div>
     </div>`).join('');
-  bv.querySelector('#board-cols').innerHTML=colsHTML;
+
+  // WAM Disciples — 3 personal-stage columns
+  const WAM_DISC_COLS=[
+    {key:'owning',    label:'Owning Org',       color:'#e65100'},
+    {key:'reproduced',label:'Reproduced Self',   color:'#6d4c41'},
+    {key:'coaching',  label:'Coaching Others',   color:'#37474f'},
+  ];
+  const wamDiscCol=`
+    <div style="display:flex;flex-direction:column;border-left:4px solid #00695c;margin-left:8px;padding-left:20px;">
+      <div style="margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:800;color:#00695c;letter-spacing:-.01em;">WAM Disciples</div>
+        <div style="font-size:10px;color:#9099b8;margin-top:2px;">Individual discipleship progress</div>
+      </div>
+      <div style="display:flex;gap:16px;">`+
+    WAM_DISC_COLS.map(c=>`
+      <div class="board-col" style="min-width:200px;">
+        <div class="board-col-hdr" style="color:${c.color};background:${c.color}14;">
+          ${c.label} <span class="col-count" id="cnt-disc-${c.key}" style="background:${c.color}22;color:${c.color};">0</span>
+        </div>
+        <div id="cards-disc-${c.key}"></div>
+      </div>`).join('')+`</div></div>`;
+
+  bv.querySelector('#board-cols').innerHTML=colsHTML+wamDiscCol;
   document.getElementById('board-title').textContent='Weekly Board';
 
   const buckets={};
-  PIPELINE_STAGES.forEach(s=>{ buckets[s.key]=[]; });
+  BOARD_STAGES.forEach(s=>{ buckets[s.key]=[]; });
+  const wamDiscs=[]; // individual people at wam stage
 
   ACTIVE_CATEGORIES.forEach(cat=>{
     allChapters(cat).sort((a,b)=>a.localeCompare(b)).forEach(chap=>{
@@ -1859,11 +1967,15 @@ function buildBoard(){
       chapDeriveFlags(d);
       const key=chapHighestStage(d);
       if(key&&buckets[key]!==undefined) buckets[key].push({cat,chap});
+      // collect WAM-stage individuals
+      getPeople(d).filter(p=>p.stage==='wam'&&(p.name||p.stage)).forEach(p=>{
+        wamDiscs.push({p,cat,chap,d});
+      });
     });
   });
 
   let total=0;
-  PIPELINE_STAGES.forEach(s=>{
+  BOARD_STAGES.forEach(s=>{
     const items=buckets[s.key];
     const container=document.getElementById('cards-'+s.key);
     if(!container) return;
@@ -1872,8 +1984,37 @@ function buildBoard(){
     document.getElementById('cnt-'+s.key).textContent=items.length;
   });
 
+  // Render WAM Disciples into 3 personal-stage columns
+  const GROUP_LABELS={'nothing':'Nothing','dg':'DG','wam':'In-House WAM','both':'DG + In-House WAM','':`Not set`};
+  const GROUP_COLORS={'nothing':'#9c27b0','dg':'#3f51b5','wam':'#00695c','both':'#2e7d32','':`#b0b8d4`};
+
+  WAM_DISC_COLS.forEach(col=>{
+    const container=document.getElementById('cards-disc-'+col.key);
+    const colPeople=wamDiscs.filter(({p})=>(p.wamPersonal||[]).includes(col.key));
+    document.getElementById('cnt-disc-'+col.key).textContent=colPeople.length;
+    if(!colPeople.length){ container.innerHTML='<div class="bc-empty">None yet</div>'; return; }
+    colPeople.forEach(({p,cat,chap,d})=>{
+      const card=document.createElement('div');
+      card.className='board-card';
+      const coachKey=(p.coach||'').trim()||'Unassigned'; const gKey=(d.wamGroupByCoach||{})[coachKey]||'';
+      card.innerHTML=`
+        <div class="bc-top" style="margin-bottom:4px;">
+          <span class="bc-name" style="font-size:12px;">${p.name||'Unnamed'}</span>
+          ${p.coach?`<span style="font-size:9px;color:#9099b8;">→ ${p.coach}</span>`:''}
+        </div>
+        <div style="font-size:10px;color:#7986cb;font-weight:600;margin-bottom:6px;">${chap} <span style="color:#b0b8d4;font-weight:400;">· ${cat.label}</span></div>
+        ${gKey?`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;"><span style="font-size:9px;color:#9099b8;font-weight:600;">Group:</span><span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:8px;background:${GROUP_COLORS[gKey]}15;color:${GROUP_COLORS[gKey]};">${GROUP_LABELS[gKey]}</span></div>`:'<div style="font-size:9px;color:#c8cfe8;margin-bottom:4px;">Group not set</div>'}
+        ${col.key==='owning'?`<div style="font-size:9px;font-weight:700;color:#6d4c41;">→ Next step: Reproduce Self</div>`:col.key==='reproduced'?`<div style="font-size:9px;font-weight:700;color:#37474f;">→ Next step: Coaching Others</div>`:col.key==='coaching'?`<div style="font-size:9px;font-weight:700;color:#2e7d32;">→ Keep going!</div>`:''}`;
+      card.addEventListener('click',()=>{
+        document.getElementById('board-view').classList.remove('open');
+        activeKey=cat.id+'__'+chap; openChapter(cat,chap); buildSidebar();
+      });
+      container.appendChild(card);
+    });
+  });
+
   const _bt=ACTIVE_FRONTIER&&ACTIVE_FRONTIER.term||{p:'chapters'};
-  document.getElementById('board-subtitle').textContent=`${total} ${_bt.p} in pipeline · ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`;
+  document.getElementById('board-subtitle').textContent=`${total} ${_bt.p} in pipeline · ${wamDiscs.length} WAM disciples · ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`;
 }
 
 document.getElementById('board-btn').addEventListener('click',()=>{ buildBoard(); document.getElementById('board-view').classList.add('open'); });
