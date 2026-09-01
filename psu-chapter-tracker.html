@@ -653,7 +653,7 @@ const PSU_CATEGORIES = [
   {
     id:'ifc', label:'Fraternities', cls:'cat-ifc',
     chapters:[
-      'Acacia','Alpha Chi Rho (Crow)','Alpha Epsilon Pi (AEPi)','Alpha Kappa Lambda (Alpha Kapp)',
+      'Acacia','Alpha Chi Rho (Crow)','Alpha Epsilon Pi (AEPi)','Alpha Gamma Rho (AGR)','Alpha Kappa Lambda (Alpha Kapp)',
       'Alpha Phi Delta (APD)','Alpha Sigma Phi (Alpha Sig)',
       'Alpha Tau Omega (ATO)','Beta Sigma Beta (BSB)',
       'Chi Phi',
@@ -1898,6 +1898,11 @@ function makeCard(cat,chap){
   const stgB=stg?`<span class="rbadge" style="background:${stg.color}22;color:${stg.color};">${stg.label}</span>`:'';
 
   const people=getPeople(d).filter(p=>p.name||p.stage);
+  const coaches=[...new Set(people.map(p=>(p.coach||'').trim()).filter(Boolean))];
+  const wamGroupKeys=[...new Set(people.filter(p=>p.stage==='wam').map(p=>{const ck=(p.coach||'').trim()||'Unassigned';return (d.wamGroupByCoach||{})[ck]||'';}).filter(Boolean))];
+  const GC={'nothing':'#9c27b0','dg':'#3f51b5','wam':'#00695c','both':'#2e7d32'};
+  const GL={'nothing':'Nothing','dg':'DG','wam':'In-House WAM','both':'DG + In-House WAM'};
+  const wamGroupLine=wamGroupKeys.length?`<div style="display:flex;align-items:center;gap:4px;margin-top:2px;">${wamGroupKeys.map(k=>`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;background:${(GC[k]||'#b0b8d4')}15;color:${GC[k]||'#9099b8'};">${GL[k]||k}</span>`).join('')}</div>`:'';
   const personRows=people.map(p=>{
     const ps=PIPELINE_STAGES.find(x=>x.key===p.stage);
     const badge=ps?`<span class="st-badge" style="background:${ps.color}18;color:${ps.color};font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;">${ps.label}</span>`:'';
@@ -1910,6 +1915,8 @@ function makeCard(cat,chap){
       <span class="bc-name">${chap}</span>
       <span class="bc-badges">${stgB}</span>
     </div>
+    ${coaches.length?`<div style="font-size:11px;color:#7986cb;font-weight:700;margin-top:4px;">Coach: ${coaches.join(' + ')}</div>`:''}
+    ${wamGroupLine}
     ${personRows?'<div class="bc-divider"></div>':''}
     ${personRows?`<div class="bc-students">${personRows}</div>`:''}`;
 
@@ -1922,7 +1929,8 @@ function makeCard(cat,chap){
 
 function buildBoard(){
   const bv=document.getElementById('board-view');
-  const BOARD_STAGES=PIPELINE_STAGES.slice(0,6); // prayer→wam only
+  const BOARD_STAGES=PIPELINE_STAGES.slice(0,5); // prayer→body only
+  const WAM_STAGE=PIPELINE_STAGES[5]; // wam
 
   const colsHTML=BOARD_STAGES.map(s=>`
     <div class="board-col" style="min-width:220px;">
@@ -1932,7 +1940,7 @@ function buildBoard(){
       <div id="cards-${s.key}"></div>
     </div>`).join('');
 
-  // WAM Disciples — 3 personal-stage columns
+  // WAM Disciples — WAM orgs column + 3 personal-stage columns
   const WAM_DISC_COLS=[
     {key:'owning',    label:'Owning Org',       color:'#e65100'},
     {key:'reproduced',label:'Reproduced Self',   color:'#6d4c41'},
@@ -1941,10 +1949,16 @@ function buildBoard(){
   const wamDiscCol=`
     <div style="display:flex;flex-direction:column;border-left:4px solid #00695c;margin-left:8px;padding-left:20px;">
       <div style="margin-bottom:14px;">
-        <div style="font-size:13px;font-weight:800;color:#00695c;letter-spacing:-.01em;">WAM Disciples</div>
-        <div style="font-size:10px;color:#9099b8;margin-top:2px;">Individual discipleship progress</div>
+        <div style="font-size:13px;font-weight:800;color:#00695c;letter-spacing:-.01em;">WAM</div>
+        <div style="font-size:10px;color:#9099b8;margin-top:2px;">Group stage + individual discipleship progress</div>
       </div>
-      <div style="display:flex;gap:16px;">`+
+      <div style="display:flex;gap:16px;">
+      <div class="board-col" style="min-width:220px;">
+        <div class="board-col-hdr" style="color:${WAM_STAGE.color};background:${WAM_STAGE.color}14;">
+          ${WAM_STAGE.label} <span class="col-count" id="cnt-${WAM_STAGE.key}" style="background:${WAM_STAGE.color}22;color:${WAM_STAGE.color};">0</span>
+        </div>
+        <div id="cards-${WAM_STAGE.key}"></div>
+      </div>`+
     WAM_DISC_COLS.map(c=>`
       <div class="board-col" style="min-width:200px;">
         <div class="board-col-hdr" style="color:${c.color};background:${c.color}14;">
@@ -1958,6 +1972,7 @@ function buildBoard(){
 
   const buckets={};
   BOARD_STAGES.forEach(s=>{ buckets[s.key]=[]; });
+  buckets[WAM_STAGE.key]=[];
   const wamDiscs=[]; // individual people at wam stage
 
   ACTIVE_CATEGORIES.forEach(cat=>{
@@ -1984,9 +1999,18 @@ function buildBoard(){
     document.getElementById('cnt-'+s.key).textContent=items.length;
   });
 
-  // Render WAM Disciples into 3 personal-stage columns
+  // Render WAM org column
   const GROUP_LABELS={'nothing':'Nothing','dg':'DG','wam':'In-House WAM','both':'DG + In-House WAM','':`Not set`};
   const GROUP_COLORS={'nothing':'#9c27b0','dg':'#3f51b5','wam':'#00695c','both':'#2e7d32','':`#b0b8d4`};
+  const wamOrgItems=buckets[WAM_STAGE.key];
+  const wamOrgContainer=document.getElementById('cards-'+WAM_STAGE.key);
+  if(wamOrgContainer){
+    if(!wamOrgItems.length){ wamOrgContainer.innerHTML='<div class="bc-empty">None yet</div>'; }
+    else { wamOrgItems.forEach(({cat,chap})=>wamOrgContainer.appendChild(makeCard(cat,chap))); total+=wamOrgItems.length; }
+    document.getElementById('cnt-'+WAM_STAGE.key).textContent=wamOrgItems.length;
+  }
+
+  // Render WAM Disciples into 3 personal-stage columns
 
   WAM_DISC_COLS.forEach(col=>{
     const container=document.getElementById('cards-disc-'+col.key);
@@ -1998,12 +2022,12 @@ function buildBoard(){
       card.className='board-card';
       const coachKey=(p.coach||'').trim()||'Unassigned'; const gKey=(d.wamGroupByCoach||{})[coachKey]||'';
       card.innerHTML=`
-        <div class="bc-top" style="margin-bottom:4px;">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
           <span class="bc-name" style="font-size:12px;">${p.name||'Unnamed'}</span>
-          ${p.coach?`<span style="font-size:9px;color:#9099b8;">→ ${p.coach}</span>`:''}
+          ${gKey?`<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:8px;background:${GROUP_COLORS[gKey]}15;color:${GROUP_COLORS[gKey]};">${GROUP_LABELS[gKey]}</span>`:'<span style="font-size:9px;color:#c8cfe8;">No group</span>'}
         </div>
-        <div style="font-size:10px;color:#7986cb;font-weight:600;margin-bottom:6px;">${chap} <span style="color:#b0b8d4;font-weight:400;">· ${cat.label}</span></div>
-        ${gKey?`<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;"><span style="font-size:9px;color:#9099b8;font-weight:600;">Group:</span><span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:8px;background:${GROUP_COLORS[gKey]}15;color:${GROUP_COLORS[gKey]};">${GROUP_LABELS[gKey]}</span></div>`:'<div style="font-size:9px;color:#c8cfe8;margin-bottom:4px;">Group not set</div>'}
+        <div style="font-size:10px;color:#7986cb;font-weight:600;margin-bottom:4px;">${chap} <span style="color:#b0b8d4;font-weight:400;">· ${cat.label}</span></div>
+        ${p.coach?`<div style="font-size:11px;color:#7986cb;font-weight:700;margin-bottom:4px;">Coach: ${p.coach}</div>`:''}
         ${col.key==='owning'?`<div style="font-size:9px;font-weight:700;color:#6d4c41;">→ Next step: Reproduce Self</div>`:col.key==='reproduced'?`<div style="font-size:9px;font-weight:700;color:#37474f;">→ Next step: Coaching Others</div>`:col.key==='coaching'?`<div style="font-size:9px;font-weight:700;color:#2e7d32;">→ Keep going!</div>`:''}`;
       card.addEventListener('click',()=>{
         document.getElementById('board-view').classList.remove('open');
