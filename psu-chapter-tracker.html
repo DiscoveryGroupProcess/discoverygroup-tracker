@@ -471,7 +471,8 @@ textarea::placeholder{color:#c8cfe8;}
   <input id="search" type="text" placeholder="Search chapters…">
   <div style="width:1px;height:20px;background:#dde1ee;margin:0 4px;flex-shrink:0;"></div>
   <!-- Actions -->
-  <button id="board-btn">📋 Board View</button>
+  <button id="board-btn">📋 Big Board</button>
+  <button id="prayer-btn" class="topbar-btn" style="color:#7986cb;border-color:#c5cae9;">🙏 Prayer List</button>
   <button id="recap-btn" class="topbar-btn" style="color:#f57c00;border-color:#b2dfdb;">↓ Weekly Recap</button>
   <button id="export-btn" class="topbar-btn">↓ Export</button>
   <label class="topbar-btn" style="cursor:pointer;">↑ Import<input type="file" accept=".json,.html" style="display:none;" id="import-inp"></label>
@@ -518,6 +519,28 @@ textarea::placeholder{color:#c8cfe8;}
         <div id="notes-page-body" contenteditable="true" data-placeholder="Start typing…"></div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- PRAYER LIST VIEW -->
+<div id="prayer-view" style="display:none;position:fixed;inset:0;background:#fff;z-index:300;overflow-y:auto;flex-direction:column;">
+  <div style="background:#3949ab;padding:14px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10;box-shadow:0 2px 12px rgba(57,73,171,.25);">
+    <span style="font-size:15px;font-weight:800;color:#fff;letter-spacing:-.01em;">🙏 Prayer List</span>
+    <span style="font-size:10px;color:#c5cae9;flex:1;">Unreached chapters + expansion hubs</span>
+    <button id="prayer-view-close" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;color:#fff;font-size:11px;font-weight:700;padding:5px 14px;cursor:pointer;">✕ Close</button>
+  </div>
+  <div id="prayer-content" style="max-width:900px;margin:0 auto;padding:24px 20px;width:100%;"></div>
+</div>
+
+<!-- ORG BOARD OUTREACH PICKER -->
+<div id="outreach-picker" style="display:none;position:fixed;inset:0;background:rgba(26,31,54,.55);z-index:400;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;width:min(760px,96vw);max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(57,73,171,.25);">
+    <div style="background:#3949ab;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0;">
+      <span style="font-size:14px;font-weight:800;color:#fff;">🙏 Pick a Target</span>
+      <span style="font-size:10px;color:#c5cae9;flex:1;">Unreached PSU orgs + expansion hub schools</span>
+      <button id="outreach-picker-close" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;color:#fff;font-size:11px;font-weight:700;padding:4px 12px;cursor:pointer;">✕</button>
+    </div>
+    <div id="outreach-picker-body" style="overflow-y:auto;padding:18px 20px;"></div>
   </div>
 </div>
 
@@ -593,15 +616,46 @@ textarea::placeholder{color:#c8cfe8;}
         <button onclick="switchStuTab('chapter')" style="background:none;border:none;color:#7986cb;font-size:13px;font-weight:700;cursor:pointer;padding:0;margin-bottom:14px;">← Back</button>
         <div class="stu-board-hdr" id="board-chap-name"></div>
         <div class="stu-board-date" id="board-date"></div>
-        <div id="board-bucket-cols" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;"></div>
+        <div id="board-bucket-cols" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px;align-items:flex-start;"></div>
+        <div style="background:#fff8f0;border:1.5px solid #ffe0b2;border-radius:12px;padding:14px;margin-bottom:14px;">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#e65100;margin-bottom:10px;">Outward Focus</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+              <span style="font-size:13px;font-weight:800;color:#e65100;flex-shrink:0;">1.</span>
+              <span style="font-size:13px;color:#4e342e;font-weight:600;line-height:1.5;">Who can you tell about what you learned this week?</span>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+              <span style="font-size:13px;font-weight:800;color:#e65100;flex-shrink:0;">2.</span>
+              <span style="font-size:13px;color:#4e342e;font-weight:600;line-height:1.5;">With whom could you begin a new discovery group?</span>
+            </div>
+          </div>
+        </div>
+        <div style="background:#f0f4ff;border:1.5px solid #c5cae9;border-radius:12px;padding:14px;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+            <div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#3949ab;">Outreach Targets</div>
+            <button id="stu-outreach-view-btn" style="display:none;background:#f0f2f9;border:1px solid #c5cae9;border-radius:6px;padding:3px 10px;color:#3949ab;font-size:10px;font-weight:700;cursor:pointer;">View List</button>
+            <label id="stu-outreach-import-label" class="topbar-btn" style="cursor:pointer;font-size:10px;padding:3px 10px;color:#5c6bc0;border-color:#c5cae9;">⇄ Import Prayer List<input type="file" accept=".json" id="stu-outreach-import-inp" style="display:none;"></label>
+          </div>
+          <div id="stu-outreach-cols" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+        </div>
         <div style="background:#f8f9fe;border:1.5px solid #e4e7f5;border-radius:12px;padding:14px;margin-bottom:14px;">
           <div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#7986cb;margin-bottom:8px;">Notes</div>
           <textarea id="board-notes-area" placeholder="Notes from this week…" style="width:100%;min-height:120px;background:#fff;border:1.5px solid #e4e7f5;border-radius:8px;padding:10px;font-size:13px;font-family:inherit;color:#2d3550;outline:none;resize:vertical;line-height:1.6;"></textarea>
         </div>
-        <button id="board-export-btn" style="background:linear-gradient(135deg,#3949ab,#7c4dff);border:none;border-radius:10px;padding:10px 24px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(57,73,171,.3);">⬇ Download This Week's Copy</button>
+        <button id="board-export-btn" style="background:linear-gradient(135deg,#3949ab,#7c4dff);border:none;border-radius:10px;padding:10px 24px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(57,73,171,.3);">Download</button>
       </div>
     </div>
   </div>
+</div>
+
+<!-- INITIATING BOARD -->
+<div id="initiating-view" style="display:none;position:fixed;inset:0;background:#f0f4ff;z-index:200;flex-direction:column;overflow-y:auto;">
+  <div style="background:#fff;border-bottom:1px solid #c5cae9;padding:12px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10;">
+    <div style="font-size:15px;font-weight:700;color:#1a1f36;">🙏 Initiating Board</div>
+    <div style="font-size:11px;color:#9099b8;">Schools & orgs being pursued for gospel presence</div>
+    <button id="close-initiating" style="margin-left:auto;background:#f0f2f9;border:1px solid #dde1ee;border-radius:6px;padding:5px 14px;color:#7986cb;font-size:11px;cursor:pointer;font-weight:600;">✕ Close</button>
+  </div>
+  <div id="initiating-content" style="padding:24px;max-width:1000px;"></div>
 </div>
 
 <script>
@@ -1328,7 +1382,7 @@ function renderPanel(cat,chap){
     <div class="panel-header">
       <div class="panel-title">
         <h2>${chap}</h2>
-        <div class="meta">${cat.label} · ${ACTIVE_FRONTIER.name}</div>
+        <div class="meta">Org Board · ${cat.label} · ${ACTIVE_FRONTIER.name}</div>
       </div>
       <span class="panel-cat-badge" style="background:${color}22;color:${color};">${cat.label.split(' ')[0].toUpperCase()}</span>
       <button id="clear-org-btn" style="background:none;border:1px solid #ffc8c8;border-radius:6px;padding:4px 10px;color:#ef5350;font-size:11px;cursor:pointer;">Clear</button>
@@ -1359,6 +1413,12 @@ function renderPanel(cat,chap){
       </div>
       <div id="milestones-list"></div>
       <button class="add-milestone-btn" id="add-milestone-btn">+ Add student</button>
+    </div>
+    <div class="section" id="prayer-list-section">
+      <div class="section-label" style="color:#7986cb;margin-bottom:10px;">🙏 Prayer List</div>
+      <div style="font-size:10px;color:#9099b8;margin-bottom:10px;">Click a school below to add it to this org's prayer list</div>
+      <div id="prayer-school-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;"></div>
+      <div id="prayer-added-list"></div>
     </div>`;
 
   document.getElementById('clear-org-btn').addEventListener('click',()=>{
@@ -1594,6 +1654,8 @@ function renderPanel(cat,chap){
     const ls=document.getElementById('last-saved'); if(ls) ls.textContent='Last saved: '+fmt(Date.now());
     buildSidebar(document.getElementById('search').value);
   }
+
+  renderPanelPrayerList(cat,chap);
 }
 
 // ===== WEEKLY RECAP =====
@@ -1884,6 +1946,230 @@ document.getElementById('undo-btn').addEventListener('click',()=>{
 
 document.getElementById('search').addEventListener('input',e=>buildSidebar(e.target.value));
 
+// ===== PANEL PRAYER LIST =====
+let _PRAYER_ALL_SCHOOLS=null;
+function getPrayerAllSchools(){
+  if(_PRAYER_ALL_SCHOOLS) return _PRAYER_ALL_SCHOOLS;
+  const all=[];
+  PRAYER_HUBS.forEach(hub=>hub.schools.forEach(s=>all.push({...s,hub:hub.label,color:hub.color})));
+  PRAYER_MAIN_HUBS.forEach(s=>all.push({...s,hub:'Main Hub',color:'#7986cb'}));
+  _PRAYER_ALL_SCHOOLS=all.sort((a,b)=>a.name.localeCompare(b.name));
+  return _PRAYER_ALL_SCHOOLS;
+}
+
+function prayerKey(catId,chap){ return ACTIVE_FID+'__prayerlist__'+catId+'__'+chap; }
+function loadPrayerList(catId,chap){ try{ return JSON.parse(localStorage.getItem(prayerKey(catId,chap))||'[]'); }catch(e){ return []; } }
+function savePrayerList(catId,chap,list){ localStorage.setItem(prayerKey(catId,chap),JSON.stringify(list)); }
+
+function renderPanelPrayerList(cat,chap){
+  const chipsEl=document.getElementById('prayer-school-chips');
+  const listEl=document.getElementById('prayer-added-list');
+  if(!chipsEl||!listEl) return;
+  let list=loadPrayerList(cat.id,chap);
+  const addedNames=new Set(list.map(x=>x.name));
+
+  // School chips to click
+  chipsEl.innerHTML='';
+  getPrayerAllSchools().forEach(s=>{
+    const chip=document.createElement('span');
+    const isAdded=addedNames.has(s.name);
+    chip.style.cssText=`display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;cursor:${isAdded?'default':'pointer'};border:1.5px solid ${s.color}${isAdded?'':'44'};background:${isAdded?s.color+'22':'#f5f6ff'};color:${isAdded?s.color:'#9099b8'};`;
+    chip.textContent=(isAdded?'✓ ':'')+s.name;
+    chip.title=s.city+' · '+s.hub;
+    if(!isAdded){
+      chip.addEventListener('click',()=>{
+        list=loadPrayerList(cat.id,chap);
+        list.push({name:s.name,city:s.city,hub:s.hub,color:s.color,initiator:'',notes:''});
+        savePrayerList(cat.id,chap,list);
+        renderPanelPrayerList(cat,chap);
+      });
+    }
+    chipsEl.appendChild(chip);
+  });
+
+  // Added list
+  listEl.innerHTML='';
+  if(!list.length){
+    listEl.innerHTML='<div style="font-size:11px;color:#c8cfe8;font-style:italic;margin-bottom:8px;">No schools added yet — click one above.</div>';
+    return;
+  }
+  list.forEach((item,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='background:#fff;border:1.5px solid '+item.color+'33;border-left:4px solid '+item.color+';border-radius:10px;padding:10px 12px;margin-bottom:8px;';
+    row.innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <div style="flex:1;">
+          <div style="font-size:12px;font-weight:800;color:#1a1f36;">${item.name}</div>
+          <div style="font-size:10px;color:#9099b8;">${item.city} · ${item.hub}</div>
+        </div>
+        <button data-i="${i}" class="pl-remove" style="background:none;border:1px solid #ffc8c8;border-radius:6px;padding:2px 8px;color:#ef5350;font-size:10px;cursor:pointer;">Remove</button>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <input data-i="${i}" class="pl-initiator" placeholder="Who will initiate?" value="${(item.initiator||'').replace(/"/g,'&quot;')}" style="flex:1;background:#f5f6fa;border:1.5px solid #e0e6f0;border-radius:7px;padding:5px 9px;font-size:11px;outline:none;font-family:inherit;color:#2d3550;">
+        <input data-i="${i}" class="pl-notes" placeholder="Notes…" value="${(item.notes||'').replace(/"/g,'&quot;')}" style="flex:2;background:#f5f6fa;border:1.5px solid #e0e6f0;border-radius:7px;padding:5px 9px;font-size:11px;outline:none;font-family:inherit;color:#2d3550;">
+      </div>`;
+    listEl.appendChild(row);
+  });
+
+  listEl.querySelectorAll('.pl-remove').forEach(btn=>btn.addEventListener('click',e=>{
+    const idx=+e.target.dataset.i;
+    list=loadPrayerList(cat.id,chap); list.splice(idx,1);
+    savePrayerList(cat.id,chap,list); renderPanelPrayerList(cat,chap);
+  }));
+  listEl.querySelectorAll('.pl-initiator').forEach(inp=>inp.addEventListener('input',e=>{
+    const idx=+e.target.dataset.i;
+    list=loadPrayerList(cat.id,chap); list[idx].initiator=e.target.value;
+    savePrayerList(cat.id,chap,list);
+  }));
+  listEl.querySelectorAll('.pl-notes').forEach(inp=>inp.addEventListener('input',e=>{
+    const idx=+e.target.dataset.i;
+    list=loadPrayerList(cat.id,chap); list[idx].notes=e.target.value;
+    savePrayerList(cat.id,chap,list);
+  }));
+}
+
+// ===== STUDENT BOARD PRAYER LIST =====
+function stuPrayerKey(fid,catId,chap){ return 'stuprayer__'+fid+'__'+catId+'__'+chap; }
+function loadStuPrayer(fid,catId,chap){ try{ return JSON.parse(localStorage.getItem(stuPrayerKey(fid,catId,chap))||'[]'); }catch(e){ return []; } }
+function saveStuPrayer(fid,catId,chap,list){ localStorage.setItem(stuPrayerKey(fid,catId,chap),JSON.stringify(list)); }
+
+function renderStuPrayerList(){
+  const chipsEl=document.getElementById('stu-prayer-chips');
+  const listEl=document.getElementById('stu-prayer-added');
+  if(!chipsEl||!listEl) return;
+  const list=loadStuPrayer(STU_FID,STU_CAT_ID,STU_CHAP);
+  const addedNames=new Set(list.map(x=>x.name));
+  const schools=getPrayerAllSchools();
+
+  chipsEl.innerHTML='';
+  schools.forEach(s=>{
+    const isAdded=addedNames.has(s.name);
+    const chip=document.createElement('span');
+    chip.style.cssText=`display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;cursor:${isAdded?'default':'pointer'};border:1.5px solid ${s.color}${isAdded?'':'44'};background:${isAdded?s.color+'22':'#f5f6ff'};color:${isAdded?s.color:'#9099b8'};`;
+    chip.textContent=(isAdded?'✓ ':'')+s.name;
+    chip.title=s.city+' · '+s.hub;
+    if(!isAdded){
+      chip.addEventListener('click',()=>{
+        const cur=loadStuPrayer(STU_FID,STU_CAT_ID,STU_CHAP);
+        cur.push({name:s.name,city:s.city,hub:s.hub,color:s.color,initiator:'',notes:'',initiating:false});
+        saveStuPrayer(STU_FID,STU_CAT_ID,STU_CHAP,cur);
+        renderStuPrayerList();
+      });
+    }
+    chipsEl.appendChild(chip);
+  });
+
+  listEl.innerHTML='';
+  if(!list.length){
+    listEl.innerHTML='<div style="font-size:11px;color:#9099b8;font-style:italic;">No schools added — click one above.</div>';
+    return;
+  }
+  list.forEach((item,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='background:#fff;border:1.5px solid '+item.color+'33;border-left:4px solid '+item.color+';border-radius:10px;padding:10px 12px;margin-bottom:8px;';
+    row.innerHTML=`
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <div style="flex:1;">
+          <div style="font-size:12px;font-weight:800;color:#1a1f36;">${item.name}</div>
+          <div style="font-size:10px;color:#9099b8;">${item.city} · ${item.hub}</div>
+        </div>
+        <label style="display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#3949ab;cursor:pointer;">
+          <input type="checkbox" class="spl-init-chk" data-i="${i}" ${item.initiating?'checked':''} style="accent-color:#3949ab;">
+          I'm initiating
+        </label>
+        <button data-i="${i}" class="spl-remove" style="background:none;border:1px solid #ffc8c8;border-radius:6px;padding:2px 8px;color:#ef5350;font-size:10px;cursor:pointer;">Remove</button>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <input data-i="${i}" class="spl-initiator" placeholder="Who's initiating?" value="${(item.initiator||'').replace(/"/g,'&quot;')}" style="flex:1;background:#f5f6fa;border:1.5px solid #e0e6f0;border-radius:7px;padding:5px 9px;font-size:11px;outline:none;font-family:inherit;color:#2d3550;">
+        <input data-i="${i}" class="spl-notes" placeholder="Notes…" value="${(item.notes||'').replace(/"/g,'&quot;')}" style="flex:2;background:#f5f6fa;border:1.5px solid #e0e6f0;border-radius:7px;padding:5px 9px;font-size:11px;outline:none;font-family:inherit;color:#2d3550;">
+      </div>`;
+    listEl.appendChild(row);
+  });
+
+  listEl.querySelectorAll('.spl-remove').forEach(btn=>btn.addEventListener('click',e=>{
+    const idx=+e.target.dataset.i;
+    const cur=loadStuPrayer(STU_FID,STU_CAT_ID,STU_CHAP); cur.splice(idx,1);
+    saveStuPrayer(STU_FID,STU_CAT_ID,STU_CHAP,cur); renderStuPrayerList();
+  }));
+  listEl.querySelectorAll('.spl-init-chk').forEach(chk=>chk.addEventListener('change',e=>{
+    const idx=+e.target.dataset.i;
+    const cur=loadStuPrayer(STU_FID,STU_CAT_ID,STU_CHAP); cur[idx].initiating=e.target.checked;
+    saveStuPrayer(STU_FID,STU_CAT_ID,STU_CHAP,cur);
+  }));
+  listEl.querySelectorAll('.spl-initiator').forEach(inp=>inp.addEventListener('input',e=>{
+    const idx=+e.target.dataset.i;
+    const cur=loadStuPrayer(STU_FID,STU_CAT_ID,STU_CHAP); cur[idx].initiator=e.target.value;
+    saveStuPrayer(STU_FID,STU_CAT_ID,STU_CHAP,cur);
+  }));
+  listEl.querySelectorAll('.spl-notes').forEach(inp=>inp.addEventListener('input',e=>{
+    const idx=+e.target.dataset.i;
+    const cur=loadStuPrayer(STU_FID,STU_CAT_ID,STU_CHAP); cur[idx].notes=e.target.value;
+    saveStuPrayer(STU_FID,STU_CAT_ID,STU_CHAP,cur);
+  }));
+}
+
+function renderInitiatingBoard(){
+  // Collect all student prayer entries marked initiating across all chapters
+  const frontier=FRONTIERS.find(f=>f.id===STU_FID);
+  const cards=[];
+  if(frontier){
+    frontier.categories.forEach(cat=>{
+      allChaptersFor(STU_FID,cat).forEach(chap=>{
+        const list=loadStuPrayer(STU_FID,cat.id,chap);
+        list.filter(x=>x.initiating||x.initiator).forEach(item=>{
+          cards.push({chap,cat:cat.label,item});
+        });
+      });
+    });
+  }
+  // Also check admin boards (ACTIVE_FID)
+  if(ACTIVE_FID&&ACTIVE_FID!==STU_FID){
+    const af=FRONTIERS.find(f=>f.id===ACTIVE_FID);
+    if(af) af.categories.forEach(cat=>{
+      allChaptersFor(ACTIVE_FID,cat).forEach(chap=>{
+        const key=ACTIVE_FID+'__prayerlist__'+cat.id+'__'+chap;
+        let list=[]; try{ list=JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){}
+        list.filter(x=>x.initiator).forEach(item=>{ cards.push({chap,cat:cat.label,item}); });
+      });
+    });
+  }
+
+  const el=document.getElementById('initiating-content');
+  if(!cards.length){
+    el.innerHTML='<div style="color:#9099b8;font-size:14px;font-style:italic;padding:40px 0;">No schools or orgs marked for initiation yet. Add schools from a chapter\'s prayer list and check "I\'m initiating" or fill in an initiator.</div>';
+    return;
+  }
+
+  // Group by school name
+  const bySchool={};
+  cards.forEach(({chap,cat,item})=>{
+    if(!bySchool[item.name]) bySchool[item.name]={item,entries:[]};
+    bySchool[item.name].entries.push({chap,cat,initiator:item.initiator,notes:item.notes});
+  });
+
+  let html='<div style="display:flex;flex-wrap:wrap;gap:16px;">';
+  Object.entries(bySchool).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([school,{item,entries}])=>{
+    const color=item.color||'#7986cb';
+    html+=`<div style="background:#fff;border:2px solid ${color}44;border-left:5px solid ${color};border-radius:14px;padding:16px;min-width:240px;max-width:320px;flex:1;">
+      <div style="font-size:14px;font-weight:800;color:#1a1f36;margin-bottom:2px;">${school}</div>
+      <div style="font-size:10px;color:#9099b8;margin-bottom:12px;">${item.city||''} · ${item.hub||''}</div>`;
+    entries.forEach(e=>{
+      html+=`<div style="background:#f5f6ff;border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+        <div style="font-size:11px;font-weight:700;color:#3949ab;">${e.chap} <span style="font-weight:400;color:#9099b8;">· ${e.cat}</span></div>
+        ${e.initiator?`<div style="font-size:11px;color:#1a1f36;margin-top:3px;">👤 ${e.initiator}</div>`:''}
+        ${e.notes?`<div style="font-size:11px;color:#555;margin-top:3px;font-style:italic;">${e.notes}</div>`:''}
+      </div>`;
+    });
+    html+='</div>';
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+document.getElementById('close-initiating').addEventListener('click',()=>{
+  document.getElementById('initiating-view').style.display='none';
+});
+
 // ===== BOARD VIEW (ADMIN) =====
 function hasData(catId,chap){ const d=load(catId,chap); return getPeople(d).filter(p=>p.name||p.stage).length>0||!!(d.notes&&d.notes.trim())||(d.leaders||[]).length>0||(d.students||[]).length>0; }
 function hasDataFor(fid,catId,chap){ const d=loadFor(fid,catId,chap); return getPeople(d).filter(p=>p.name||p.stage).length>0||!!(d.notes&&d.notes.trim())||(d.leaders||[]).length>0||(d.students||[]).length>0; }
@@ -2042,6 +2328,239 @@ function buildBoard(){
 }
 
 document.getElementById('board-btn').addEventListener('click',()=>{ buildBoard(); document.getElementById('board-view').classList.add('open'); });
+
+// ===== PRAYER LIST =====
+// Schools organized geographically then by chapter count (largest first)
+const PRAYER_REGIONS=[
+  {label:'Northeast',color:'#5c6bc0',schools:[
+    {name:'Rutgers',          city:'New Brunswick, NJ', ni:'#47',  ch:55, p:7},
+    {name:'Syracuse',         city:'Syracuse, NY',       ni:'#8',   ch:50, p:26},
+    {name:'UConn',            city:'Storrs, CT',         ni:'#166', ch:28, p:7},
+    {name:'SUNY Buffalo',     city:'Buffalo, NY',        ni:'#169', ch:30, p:4},
+    {name:'SUNY Albany',      city:'Albany, NY',         ni:'#58',  ch:25, p:5},
+    {name:'UNH',              city:'Durham, NH',         ni:'#124', ch:24, p:10},
+    {name:'UMass Amherst',    city:'Amherst, MA',        ni:'#1 in MA',ch:30,p:5},
+    {name:'Rhode Island (URI)',city:'Kingston, RI',       ni:'#184', ch:20, p:12},
+    {name:'UVM',              city:'Burlington, VT',     ni:null,   ch:22, p:10},
+  ]},
+  {label:'Mid-Atlantic',color:'#26a69a',schools:[
+    {name:'Univ. of Virginia',    city:'Charlottesville, VA', ni:'#35',  ch:60, p:30},
+    {name:'Univ. of Delaware',    city:'Newark, DE',          ni:'#38',  ch:35, p:18},
+    {name:'Univ. of Maryland',    city:'College Park, MD',    ni:'#94',  ch:32, p:8},
+    {name:'West Virginia Univ.',  city:'Morgantown, WV',      ni:'#13',  ch:30, p:13},
+    {name:'James Madison Univ.',  city:'Harrisonburg, VA',    ni:'#29',  ch:30, p:18},
+  ]},
+  {label:'Midwest',color:'#ab47bc',schools:[
+    {name:'Illinois (UIUC)',city:'Champaign, IL',    ni:'#10',  ch:96, p:24},
+    {name:'Purdue',         city:'W. Lafayette, IN', ni:'#289', ch:79, p:19},
+    {name:'Indiana Univ.',  city:'Bloomington, IN',  ni:'#16',  ch:70, p:18},
+    {name:'Wisconsin',      city:'Madison, WI',      ni:'#4',   ch:60, p:14},
+    {name:'Michigan State', city:'East Lansing, MI', ni:'#27',  ch:60, p:8},
+    {name:'Univ. of Michigan',city:'Ann Arbor, MI',  ni:'#31',  ch:58, p:18},
+    {name:'Minnesota',      city:'Twin Cities, MN',  ni:'#129', ch:55, p:11},
+    {name:'Univ. of Iowa',  city:'Iowa City, IA',    ni:'#34',  ch:40, p:15},
+  ]},
+];
+// Keep flat lists for backward compat with getPrayerAllSchools
+const PRAYER_HUBS=PRAYER_REGIONS.map(r=>({label:r.label,color:r.color,schools:r.schools}));
+const PRAYER_MAIN_HUBS=[];
+
+// ===== PRAYER LIST (Big Board topbar) =====
+document.getElementById('prayer-btn').addEventListener('click',()=>{
+  const el=document.getElementById('prayer-view');
+  el.style.display='flex';
+  el.style.flexDirection='column';
+  const out=document.getElementById('prayer-content');
+
+  const psuCat=ACTIVE_CATEGORIES;
+  const unreached=[];
+  psuCat.forEach(cat=>{
+    allChapters(cat).sort((a,b)=>a.localeCompare(b)).forEach(chap=>{
+      const d=load(cat.id,chap);
+      const people=getPeople(d).filter(p=>p.name||p.stage);
+      const hasStage=chapHighestStage(d);
+      if(!hasStage&&!people.length) unreached.push({cat,chap});
+    });
+  });
+
+  let html='';
+  html+=`<div style="margin-bottom:28px;">
+    <div style="font-size:13px;font-weight:800;color:#3949ab;letter-spacing:-.01em;margin-bottom:4px;">Penn State — No Stage Yet <span style="font-size:10px;font-weight:700;background:#e8eaf5;color:#7986cb;padding:2px 8px;border-radius:8px;margin-left:6px;">${unreached.length}</span></div>
+    <div style="font-size:10px;color:#9099b8;margin-bottom:12px;">IFC fraternities and other chapters with no data entered</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      ${unreached.length?unreached.map(({cat,chap})=>`<div style="background:#f5f6ff;border:1.5px solid #c5cae9;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;color:#3949ab;">${chap} <span style="font-weight:400;color:#b0b8d4;font-size:10px;">· ${cat.label}</span></div>`).join(''):'<div style="font-size:11px;color:#c8cfe8;font-style:italic;">All chapters have some data — great work!</div>'}
+    </div>
+  </div>`;
+  html+=`<div style="border-top:2px solid #e8eaf5;margin-bottom:24px;"></div>`;
+  html+=`<div style="font-size:13px;font-weight:800;color:#1a1f36;letter-spacing:-.01em;margin-bottom:4px;">Other Schools</div>`;
+  html+=`<div style="font-size:10px;color:#9099b8;margin-bottom:18px;">Organized by region, largest Greek presence first</div>`;
+  PRAYER_REGIONS.forEach(region=>{
+    html+=`<div style="margin-bottom:22px;">
+      <div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:${region.color};margin-bottom:10px;">${region.label}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        ${region.schools.map(s=>`<div style="background:#fff;border:1.5px solid ${region.color}44;border-left:4px solid ${region.color};border-radius:10px;padding:8px 14px;min-width:170px;">
+          <div style="font-size:12px;font-weight:800;color:#1a1f36;">${s.name}</div>
+          <div style="font-size:10px;color:#9099b8;margin-top:1px;">${s.city}</div>
+          <div style="font-size:10px;color:${region.color};margin-top:3px;font-weight:700;">${s.ch} chapters · ${s.p}% Greek${s.ni?` · Niche ${s.ni}`:''}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  });
+
+  // Download button — includes PSU none-stage orgs + all regional schools
+  const dlWrap=document.createElement('div');
+  dlWrap.style.cssText='margin-top:8px;';
+  const dlBtn=document.createElement('button');
+  dlBtn.textContent='⬇ Download for Org Board Import';
+  dlBtn.style.cssText='background:#3949ab;border:none;border-radius:8px;padding:8px 18px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;';
+  dlBtn.onclick=()=>{
+    const payload={
+      categories:[
+        {label:'Penn State — No Stage Yet', color:'#7986cb', items: unreached.map(u=>({name:u.chap,sub:u.cat.label,color:'#7986cb'}))},
+        ...PRAYER_REGIONS.map(r=>({label:r.label, color:r.color, items:r.schools.map(s=>({name:s.name,sub:s.city,color:r.color}))}))
+      ],
+      ts:Date.now()
+    };
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='prayer-list-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+  };
+  dlWrap.appendChild(dlBtn);
+  out.innerHTML=html;
+  out.appendChild(dlWrap);
+});
+document.getElementById('prayer-view-close').addEventListener('click',()=>{
+  document.getElementById('prayer-view').style.display='none';
+});
+
+// ===== ORG BOARD OUTREACH TARGETS =====
+function outreachKey(fid,catId,chap){ return 'outreach__'+fid+'__'+catId+'__'+chap; }
+function loadOutreach(fid,catId,chap){ try{ return JSON.parse(localStorage.getItem(outreachKey(fid,catId,chap))||'[]'); }catch(e){ return []; } }
+function saveOutreach(fid,catId,chap,list){ localStorage.setItem(outreachKey(fid,catId,chap),JSON.stringify(list)); }
+
+function buildOutreachPicker(importedCategories){
+  const body=document.getElementById('outreach-picker-body');
+  body.innerHTML='';
+  const existing=new Set(loadOutreach(STU_FID,STU_CAT_ID,STU_CHAP).map(x=>x.name));
+  if(importedCategories) _currentPickerCats=importedCategories;
+
+  // Build category list: use imported if provided, otherwise build live
+  let categories;
+  if(importedCategories){
+    categories=importedCategories;
+  } else {
+    const unreached=[];
+    ACTIVE_CATEGORIES.forEach(cat=>{
+      allChapters(cat).sort((a,b)=>a.localeCompare(b)).forEach(chap=>{
+        const d=load(cat.id,chap);
+        const people=getPeople(d).filter(p=>p.name||p.stage);
+        if(!chapHighestStage(d)&&!people.length) unreached.push({name:chap,sub:cat.label,color:'#7986cb'});
+      });
+    });
+    categories=[
+      {label:'Penn State — No Stage Yet', color:'#7986cb', items:unreached},
+      ...PRAYER_REGIONS.map(r=>({label:r.label, color:r.color, items:r.schools.map(s=>({name:s.name,sub:s.city,color:r.color}))}))
+    ];
+  }
+
+  let html='<div style="display:flex;flex-direction:column;gap:10px;">';
+  categories.forEach(cat=>{
+    if(!cat.items||!cat.items.length) return;
+    html+=`<div>`;
+    html+=`<div style="font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:${cat.color};margin-bottom:5px;">${cat.label}</div>`;
+    html+=`<div style="display:flex;flex-wrap:wrap;gap:4px;">`;
+    cat.items.forEach(item=>{
+      const added=existing.has(item.name);
+      const c=item.color||cat.color||'#7986cb';
+      html+=`<div class="op-chip" data-name="${item.name.replace(/"/g,'&quot;')}" data-sub="${(item.sub||'').replace(/"/g,'&quot;')}" data-color="${c}" style="padding:3px 9px;border-radius:14px;font-size:10px;font-weight:700;border:1.5px solid ${added?c:c+'55'};background:${added?c+'22':'#f8f9ff'};color:${added?c:'#9099b8'};cursor:${added?'default':'pointer'};">${added?'✓ ':''} ${item.name}</div>`;
+    });
+    html+='</div></div>';
+  });
+  html+='</div>';
+
+  body.innerHTML=html;
+  body.querySelectorAll('.op-chip').forEach(chip=>{
+    if(chip.style.cursor==='default') return;
+    chip.addEventListener('click',()=>openOutreachEntry(chip.dataset.name, chip.dataset.sub, chip.dataset.color));
+  });
+}
+
+let _currentPickerCats=null;
+
+function openOutreachEntry(name, sub, color){
+  const body=document.getElementById('outreach-picker-body');
+  body.innerHTML=`
+    <div style="margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:800;color:#1a1f36;">${name}</div>
+      <div style="font-size:11px;color:#9099b8;">${sub}</div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#9099b8;margin-bottom:6px;">Who is initiating?</div>
+      <input id="oe-initiator" placeholder="Name of person initiating contact" style="width:100%;background:#f5f6fa;border:1.5px solid #c5cae9;border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;color:#2d3550;outline:none;">
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#9099b8;margin-bottom:6px;">Notes</div>
+      <textarea id="oe-notes" placeholder="Any context…" style="width:100%;min-height:80px;background:#f5f6fa;border:1.5px solid #c5cae9;border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;color:#2d3550;outline:none;resize:vertical;"></textarea>
+    </div>
+    <button id="oe-save" style="width:100%;background:#3949ab;border:none;border-radius:8px;padding:8px 18px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">Add</button>`;
+
+  document.getElementById('oe-save').addEventListener('click',()=>{
+    const list=loadOutreach(STU_FID,STU_CAT_ID,STU_CHAP);
+    list.push({name, sub, color,
+      initiator: document.getElementById('oe-initiator').value.trim(),
+      notes: document.getElementById('oe-notes').value.trim(),
+    });
+    saveOutreach(STU_FID,STU_CAT_ID,STU_CHAP,list);
+    renderOutreachCols();
+    document.getElementById('outreach-picker').style.display='none';
+  });
+}
+
+function renderOutreachCols(){
+  const el=document.getElementById('stu-outreach-cols');
+  if(!el) return;
+  const list=loadOutreach(STU_FID,STU_CAT_ID,STU_CHAP);
+  el.innerHTML='';
+
+  if(!list.length){
+    el.innerHTML='<div style="font-size:11px;color:#9099b8;font-style:italic;padding:4px 0;">No outreach targets yet. Click "+ Add Target" to add a school or unreached org.</div>';
+    return;
+  }
+
+  // Group by coach
+  const coachMap={};
+  list.forEach((item,i)=>{
+    const ck=(item.coach||'').trim()||'Unassigned';
+    if(!coachMap[ck]) coachMap[ck]=[];
+    coachMap[ck].push({item,i});
+  });
+
+  Object.entries(coachMap).sort((a,b)=>a[0]==='Unassigned'?1:b[0]==='Unassigned'?-1:a[0].localeCompare(b[0])).forEach(([coach,entries])=>{
+    const col=document.createElement('div');
+    col.style.cssText='background:#f5f6ff;border:1.5px solid #c5cae9;border-radius:12px;padding:12px;min-width:180px;flex:1;';
+    let html=`<div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#3949ab;margin-bottom:8px;">Coach: ${coach}</div>`;
+    entries.forEach(({item,i})=>{
+      html+=`<div style="background:#fff;border:1.5px solid ${item.color}33;border-left:4px solid ${item.color};border-radius:8px;padding:8px 10px;margin-bottom:6px;position:relative;">
+        <button class="oc-rm" data-i="${i}" style="position:absolute;top:6px;right:6px;background:none;border:none;color:#ddd;font-size:13px;cursor:pointer;line-height:1;">×</button>
+        <div style="font-size:12px;font-weight:800;color:#1a1f36;padding-right:16px;">${item.name}</div>
+        <div style="font-size:10px;color:#9099b8;">${item.sub}</div>
+        ${item.initiator?`<div style="font-size:10px;color:#3949ab;font-weight:700;margin-top:4px;">👤 ${item.initiator}</div>`:''}
+        ${item.notes?`<div style="font-size:10px;color:#555;margin-top:3px;font-style:italic;">${item.notes}</div>`:''}
+      </div>`;
+    });
+    col.innerHTML=html;
+    col.querySelectorAll('.oc-rm').forEach(btn=>btn.addEventListener('click',e=>{
+      const idx=+e.target.dataset.i;
+      const cur=loadOutreach(STU_FID,STU_CAT_ID,STU_CHAP); cur.splice(idx,1);
+      saveOutreach(STU_FID,STU_CAT_ID,STU_CHAP,cur); renderOutreachCols();
+    }));
+    el.appendChild(col);
+  });
+}
+
+document.getElementById('outreach-picker-close').addEventListener('click',()=>{
+  document.getElementById('outreach-picker').style.display='none';
+});
 
 // ===== NOTES =====
 const NOTES_KEY = 'dgp__board_notes';
@@ -2238,7 +2757,7 @@ const BUCKET_DEFS = [
   { key:'interested', label:'Interested', cls:'bucket-interested', desc:'',
     actions:['Invite to Discovery Group','1:1','POD','Other'] },
   { key:'consistent', label:'Consistent / Hungry', cls:'bucket-consistent', desc:'',
-    actions:['Needs POD','Invite to WAM','Invite to Church / Equipping Time'] },
+    actions:['Needs POD','Invite to WAM','Invite to Tuesday Gathering'] },
 ];
 
 function closeAllChipMenus(){ document.querySelectorAll('.pool-chip-menu').forEach(m=>m.remove()); }
@@ -2304,17 +2823,22 @@ function renderRoster(){
     if(!members.length){ html+=`<div class="bucket-empty">None yet</div>`; }
     else members.forEach(({m,i})=>{
       const opts=bd.actions.map(a=>`<option${m.action===a?' selected':''}>${a}</option>`).join('');
+      const showCoach=(bd.key==='interested'||bd.key==='consistent');
       html+=`<div class="bucket-row">
         <div style="display:flex;align-items:center;justify-content:space-between;">
           <div><div class="bucket-name">${m.name||'(unnamed)'}</div>${m.year?`<div class="bucket-name-sub">${m.year}</div>`:''}</div>
           <button class="bucket-rm" data-i="${i}">×</button>
         </div>
+        ${showCoach?`<input class="bucket-coach" data-i="${i}" placeholder="Coach…" value="${(m.coach||'').replace(/"/g,'&quot;')}" style="margin-top:4px;width:100%;background:#f5f6fa;border:1.5px solid #e0e6f0;border-radius:6px;padding:4px 8px;font-size:11px;outline:none;font-family:inherit;">`:''}
         ${bd.actions.length?`<select class="bucket-sel" data-i="${i}"><option value="">Next step…</option>${opts}</select>`:''}
         ${m.action==='Other'?`<input class="bucket-other" data-i="${i}" placeholder="Describe…" value="${(m.actionOther||'').replace(/"/g,'&quot;')}" style="margin-top:4px;width:100%;background:#f5f6fa;border:1.5px solid #e0e6f0;border-radius:6px;padding:4px 8px;font-size:11px;outline:none;font-family:inherit;">`:''}
       </div>`;
     });
     html+=`</div>`;
     sec.innerHTML=html;
+    sec.querySelectorAll('.bucket-coach').forEach(inp=>inp.addEventListener('input',e=>{
+      const r2=loadRoster(); r2.members[+e.target.dataset.i].coach=e.target.value; saveRoster(r2);
+    }));
     sec.querySelectorAll('.bucket-sel').forEach(sel=>sel.addEventListener('change',e=>{
       const r2=loadRoster(); r2.members[+e.target.dataset.i].action=e.target.value; r2.members[+e.target.dataset.i].actionOther=''; saveRoster(r2); renderRoster();
     }));
@@ -2515,31 +3039,58 @@ function renderStudentBoard(){
     consistent:{bg:'#f3faf4',border:'#c8e6c9',label:'#2e7d32',badge:'rgba(46,125,50,.12)',badgeText:'#2e7d32'},
   };
 
-  BUCKET_DEFS.forEach(bd=>{
-    const list=members.filter(m=>m.bucket===bd.key);
-    const c=BOARD_COLORS[bd.key];
-    const col=document.createElement('div');
-    col.style.cssText=`background:${c.bg};border:1.5px solid ${c.border};border-radius:12px;padding:14px;`;
+  // Gather all assigned members, group by coach (for interested+consistent) or bucket (for pray)
+  const prayList=members.filter(m=>m.bucket==='pray');
+  const coachableList=members.filter(m=>m.bucket==='interested'||m.bucket==='consistent');
+  const coachMap={};
+  coachableList.forEach(m=>{
+    const ck=(m.coach||'').trim()||'Unassigned';
+    if(!coachMap[ck]) coachMap[ck]=[];
+    coachMap[ck].push(m);
+  });
 
-    let html=`<div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:${c.label};margin-bottom:2px;">${bd.label}</div>`;
-    html+=`<div style="font-size:11px;color:#aaa;margin-bottom:10px;">${list.length} person${list.length!==1?'s':''}</div>`;
+  function personCard(m, bucketKey){
+    const bd=BUCKET_DEFS.find(b=>b.key===bucketKey);
+    const c=BOARD_COLORS[bucketKey];
+    const action=m.action==='Other'&&m.actionOther?m.actionOther:m.action;
+    return `<div style="background:#fff;border-radius:10px;padding:10px 12px;margin-bottom:8px;border-left:3px solid ${c.border};box-shadow:0 1px 3px rgba(0,0,0,.04);">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:${action?'5px':'0'};">
+        <div style="font-size:13px;font-weight:700;color:#1a1f36;flex:1;">${m.name||'(unnamed)'}</div>
+        ${m.year?`<span style="font-size:10px;color:#b0b8d4;">${m.year}</span>`:''}
+        <span style="font-size:9px;font-weight:800;padding:2px 7px;border-radius:6px;background:${c.badge};color:${c.badgeText};letter-spacing:.03em;">${bd?bd.label:bucketKey}</span>
+      </div>
+      ${action?`<div style="font-size:11px;color:#3949ab;font-weight:600;">→ ${action}</div>`:''}
+    </div>`;
+  }
 
-    if(bd.desc) html+=`<div style="font-size:10px;color:#999;font-style:italic;margin-bottom:10px;line-height:1.5;">${bd.desc}</div>`;
+  // Pray column
+  const prayDef=BUCKET_DEFS[0];
+  const cp=BOARD_COLORS['pray'];
+  const prayCol=document.createElement('div');
+  prayCol.style.cssText=`background:${cp.bg};border:1.5px solid ${cp.border};border-radius:14px;padding:14px 14px 8px;min-width:160px;`;
+  let pHtml=`<div style="font-size:11px;font-weight:800;color:${cp.label};margin-bottom:2px;">${prayDef.label}</div>`;
+  pHtml+=`<div style="font-size:10px;color:#bbb;margin-bottom:10px;">${prayList.length} person${prayList.length!==1?'s':''}</div>`;
+  pHtml+=prayList.length?prayList.map(m=>personCard(m,'pray')).join(''):`<div style="font-size:11px;color:#ddd;font-style:italic;">None yet</div>`;
+  prayCol.innerHTML=pHtml;
+  cols.appendChild(prayCol);
 
-    if(!list.length){
-      html+=`<div style="font-size:11px;color:#ccc;font-style:italic;">No one here yet.</div>`;
-    } else {
-      list.forEach(m=>{
-        html+=`<div style="background:#fff;border-radius:8px;padding:8px 10px;margin-bottom:6px;">
-          <div style="font-size:12px;font-weight:700;color:#1a1f36;">${m.name||'(unnamed)'}</div>
-          ${m.year?`<div style="font-size:10px;color:#aaa;">${m.year}</div>`:''}
-          ${m.action?`<div style="display:inline-block;margin-top:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:${c.badge};color:${c.badgeText};">${m.action==='Other'&&m.actionOther?m.actionOther:m.action}</div>`:''}
-        </div>`;
-      });
-    }
-
-    col.innerHTML=html;
-    cols.appendChild(col);
+  // Coach columns
+  const coachKeys=Object.keys(coachMap).sort((a,b)=>a==='Unassigned'?1:b==='Unassigned'?-1:a.localeCompare(b));
+  if(!coachKeys.length){
+    const empty=document.createElement('div');
+    empty.style.cssText='background:#f5f6ff;border:1.5px solid #c5cae9;border-radius:14px;padding:14px;color:#ccc;font-size:11px;font-style:italic;min-width:160px;';
+    empty.textContent='No interested or hungry people yet.';
+    cols.appendChild(empty);
+  }
+  coachKeys.forEach(coach=>{
+    const list=coachMap[coach];
+    const coachCol=document.createElement('div');
+    coachCol.style.cssText='background:#f5f6ff;border:1.5px solid #c5cae9;border-radius:14px;padding:14px 14px 8px;min-width:180px;';
+    let cHtml=`<div style="font-size:13px;font-weight:800;color:#1a1f36;margin-bottom:1px;">${coach}</div>`;
+    cHtml+=`<div style="font-size:10px;color:#9099b8;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Coach · ${list.length} person${list.length!==1?'s':''}</div>`;
+    cHtml+=list.map(m=>personCard(m,m.bucket)).join('');
+    coachCol.innerHTML=cHtml;
+    cols.appendChild(coachCol);
   });
 
   // Notes
@@ -2548,24 +3099,99 @@ function renderStudentBoard(){
   notesArea.value=localStorage.getItem(notesKey)||'';
   notesArea.oninput=()=>localStorage.setItem(notesKey,notesArea.value);
 
+  // Outreach targets
+  renderOutreachCols();
+  // View List button — show if a previous import exists
+  const storedList=localStorage.getItem('importedPrayerList');
+  const viewBtn=document.getElementById('stu-outreach-view-btn');
+  if(storedList){ viewBtn.style.display=''; } else { viewBtn.style.display='none'; }
+  viewBtn.onclick=()=>{
+    try{
+      const cats=JSON.parse(localStorage.getItem('importedPrayerList'));
+      if(cats){ buildOutreachPicker(cats); document.getElementById('outreach-picker').style.display='flex'; }
+    }catch(e){}
+  };
+  document.getElementById('stu-outreach-import-inp').onchange=function(){
+    const f=this.files[0]; if(!f) return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      try{
+        const data=JSON.parse(e.target.result);
+        if(!data.categories) throw new Error('bad format');
+        // Persist imported categories so "View List" works after page reload
+        localStorage.setItem('importedPrayerList',JSON.stringify(data.categories));
+        // Clear existing outreach targets so we start fresh from this week's download
+        saveOutreach(STU_FID,STU_CAT_ID,STU_CHAP,[]);
+        renderOutreachCols();
+        document.getElementById('stu-outreach-view-btn').style.display='';
+        buildOutreachPicker(data.categories);
+        document.getElementById('outreach-picker').style.display='flex';
+      }catch(err){ alert('Could not read file. Make sure it was downloaded from the Big Board Prayer List.'); }
+    };
+    reader.readAsText(f);
+    this.value='';
+  };
+
   // Export
   document.getElementById('board-export-btn').onclick=()=>{
     const date=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
     const r2=loadRoster(); const mems=r2.members||[];
-    const COLORS={pray:'#c2185b',interested:'#1565c0',consistent:'#2e7d32'};
-    let sectionsHtml='';
-    BUCKET_DEFS.forEach(bd=>{
-      const list=mems.filter(m=>m.bucket===bd.key);
-      const color=COLORS[bd.key];
-      let rows=list.length?list.map(m=>`<div style="padding:6px 0;border-bottom:1px solid #f0f0f0;"><strong>${m.name||''}</strong>${m.year?` <span style="color:#aaa;font-size:11px;">${m.year}</span>`:''}${m.action?` — <span style="color:${color};font-size:12px;">${m.action}${m.actionOther?' ('+m.actionOther+')':''}</span>`:''}</div>`).join(''):'<div style="color:#ccc;font-size:12px;font-style:italic;">None</div>';
-      sectionsHtml+=`<div style="flex:1;min-width:200px;"><div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:${color};margin-bottom:8px;">${bd.label} (${list.length})</div>${rows}</div>`;
+    const BCOLORS={pray:'#c2185b',interested:'#1565c0',consistent:'#2e7d32'};
+    const BLABELS={pray:'Pray',interested:'Interested',consistent:'Consistent'};
+
+    // Pray column
+    const prayMems=mems.filter(m=>m.bucket==='pray');
+    const prayRows=prayMems.length?prayMems.map(m=>`<div style="padding:5px 0;border-bottom:1px solid #f5f5f5;"><strong>${m.name||''}</strong>${m.year?` <span style="color:#aaa;font-size:11px;">${m.year}</span>`:''}${m.action?` — <span style="color:#c2185b;font-size:11px;">${m.action==='Other'&&m.actionOther?m.actionOther:m.action}</span>`:''}</div>`).join(''):'<div style="color:#ccc;font-size:12px;font-style:italic;">None</div>';
+
+    // Coach columns
+    const coachMap2={};
+    mems.filter(m=>m.bucket==='interested'||m.bucket==='consistent').forEach(m=>{
+      const ck=(m.coach||'').trim()||'Unassigned';
+      if(!coachMap2[ck]) coachMap2[ck]=[];
+      coachMap2[ck].push(m);
     });
+    const coachCols=Object.entries(coachMap2).sort((a,b)=>a[0]==='Unassigned'?1:b[0]==='Unassigned'?-1:a[0].localeCompare(b[0])).map(([coach,list])=>{
+      const rows=list.map(m=>`<div style="padding:5px 0;border-bottom:1px solid #f5f5f5;"><strong>${m.name||''}</strong>${m.year?` <span style="color:#aaa;font-size:11px;">${m.year}</span>`:''} <span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:5px;background:${BCOLORS[m.bucket]}18;color:${BCOLORS[m.bucket]};">${BLABELS[m.bucket]||m.bucket}</span>${m.action?` — <span style="color:#3949ab;font-size:11px;">${m.action==='Other'&&m.actionOther?m.actionOther:m.action}</span>`:''}</div>`).join('');
+      return `<div class="col"><div style="font-size:12px;font-weight:800;color:#1a1f36;margin-bottom:2px;">${coach}</div><div style="font-size:9px;font-weight:700;color:#9099b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Coach · ${list.length}</div>${rows}</div>`;
+    }).join('');
+
+    let sectionsHtml=`<div class="col" style="max-width:180px;"><div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#c2185b;margin-bottom:8px;">Pray (${prayMems.length})</div>${prayRows}</div>${coachCols||'<div style="flex:1;color:#ccc;font-size:12px;font-style:italic;">No interested or hungry people.</div>'}`;
     const notes=(notesArea.value||'').replace(/\n/g,'<br>');
+
+    // Outreach targets — grouped by person initiating
+    const outreachList=loadOutreach(STU_FID,STU_CAT_ID,STU_CHAP);
+    let outreachHtml='';
+    if(outreachList.length){
+      const byPerson={};
+      outreachList.forEach(x=>{
+        const k=(x.initiator||'').trim()||'Unassigned';
+        if(!byPerson[k]) byPerson[k]=[];
+        byPerson[k].push(x);
+      });
+      const personCols=Object.entries(byPerson).sort((a,b)=>a[0]==='Unassigned'?1:b[0]==='Unassigned'?-1:a[0].localeCompare(b[0])).map(([person,items])=>`
+        <div class="col">
+          <div style="font-size:10px;font-weight:700;color:#3949ab;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">👤 ${person}</div>
+          ${items.map(x=>`<div style="padding:5px 0;border-bottom:1px solid #f0f0f0;"><strong>${x.name}</strong><span style="color:#aaa;font-size:11px;"> · ${x.sub||''}</span>${x.notes?`<div style="font-size:11px;color:#666;margin-top:1px;font-style:italic;">${x.notes}</div>`:''}</div>`).join('')}
+        </div>`).join('');
+      outreachHtml=`<div style="border-top:2px solid #f0f0f0;padding-top:18px;margin-bottom:18px;">
+        <div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#3949ab;margin-bottom:14px;">Outreach Targets</div>
+        <div class="cols">${personCols}</div>
+      </div>`;
+    }
+
     const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${STU_CHAP} — ${date}</title>
-    <style>body{font-family:system-ui,sans-serif;color:#1a1f36;padding:32px;max-width:900px;margin:auto;}h1{font-size:22px;margin-bottom:4px;}p{color:#888;font-size:12px;margin-bottom:24px;}@media print{button{display:none;}}</style></head>
-    <body><button onclick="window.print()" style="margin-bottom:20px;padding:8px 18px;background:#3949ab;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;">🖨 Print</button>
+    <style>
+      body{font-family:system-ui,sans-serif;color:#1a1f36;padding:20px 28px;margin:0;}
+      h1{font-size:20px;margin-bottom:3px;}
+      p{color:#888;font-size:11px;margin-bottom:18px;}
+      .cols{display:flex;flex-wrap:wrap;gap:20px;margin-bottom:28px;}
+      .col{min-width:160px;flex:1 1 160px;}
+      @media print{.no-print{display:none;} body{padding:10px 14px;} @page{margin:.6cm;}}
+    </style></head>
+    <body><button class="no-print" onclick="window.print()" style="margin-bottom:16px;padding:7px 16px;background:#3949ab;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;">Print</button>
     <h1>${STU_CHAP}</h1><p>${date}</p>
-    <div style="display:flex;gap:24px;margin-bottom:28px;">${sectionsHtml}</div>
+    <div class="cols">${sectionsHtml}</div>
+    ${outreachHtml}
     ${notes?`<div style="border-top:2px solid #f0f0f0;padding-top:18px;"><div style="font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#7986cb;margin-bottom:8px;">Notes</div><div style="font-size:13px;line-height:1.7;">${notes}</div></div>`:''}
     </body></html>`;
     const blob=new Blob([html],{type:'text/html'});
